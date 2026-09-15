@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 200" width="210" height="200" role="img" aria-label="FoodDash">
+  <title>FoodDash</title>
+  <!-- Icon-only mark: app icon, favicon, collapsed nav, rider PWA home screen. -->
+  <g fill="#5CC9AB">
+    <path d="M18 44h74v26H49v14h33v26H49v46H18z"/>
+    <path d="M18 44h74l-26 26H18z" opacity="0.85"/>
+  </g>
+  <path fill="#D85A30" d="M96 44h44c37 0 62 22 62 56s-25 56-62 56H96zm31 26v60h13c19 0 31-11 31-30s-12-30-31-30z"/>
+</svg>

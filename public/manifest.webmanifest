@@ -1,0 +1,13 @@
+{
+  "name": "FoodDash",
+  "short_name": "FoodDash",
+  "description": "Where Food Finds You.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFD9C9",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/brand/fooddash-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

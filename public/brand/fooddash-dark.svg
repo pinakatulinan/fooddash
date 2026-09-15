@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 428 200" width="428" height="200" role="img" aria-label="FoodDash">
+  <title>FoodDash</title>
+  <!--
+    PLACEHOLDER MARK - replace this file with the supplied dark-mode logo.
+    Keep the filename and the 428x200 viewBox and no code changes are needed;
+    components/brand/logo.tsx points at this path.
+  -->
+  <g fill="#5CC9AB">
+    <path d="M18 44h74v26H49v14h33v26H49v46H18z"/>
+    <path d="M18 44h74l-26 26H18z" opacity="0.85"/>
+  </g>
+  <path fill="#D85A30" d="M96 44h44c37 0 62 22 62 56s-25 56-62 56H96zm31 26v60h13c19 0 31-11 31-30s-12-30-31-30z"/>
+  <g font-family="'Plus Jakarta Sans','Poppins','Segoe UI',system-ui,sans-serif" font-weight="700" font-size="58">
+    <text x="226" y="106" fill="#5CC9AB">Food</text>
+    <text x="226" y="106" fill="#D85A30" dx="128">Dash</text>
+  </g>
+  <text x="228" y="146" fill="#FFFFFF" font-family="'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif"
+        font-size="16" letter-spacing="4.5">Where Food Finds You.</text>
+</svg>

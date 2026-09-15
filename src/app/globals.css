@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   FoodDash design tokens
+
+   The brief gave three core colours and four supporting shades. Those are
+   reproduced here verbatim and are the only place a hex code appears in this
+   codebase - components reference semantic tokens, never raw values, so a
+   rebrand is an edit to this file and nothing else.
+
+   Three additions were necessary and are marked as such:
+     - a destructive red and a warning amber, because the brand palette has no
+       failure colour and coral is already spoken for by primary actions
+     - a deeper mint (--mint-mark) matching the logo, since the pastel
+       mint is a surface colour and disappears at icon scale
+     - two neutral surfaces between white and the #E2E2E2 border, because
+       every card-on-card layout needs one
+   ========================================================================== */
+
+:root {
+  /* ---- The core three ---- */
+  --coral-pastel: #ffd9c9;   /* screen headers, passive surfaces, avatars */
+  --mint-pastel:  #cff0e8;   /* status pills, success states, tags        */
+  --white:        #ffffff;   /* backgrounds, cards, everything else       */
+
+  /* ---- Supporting shades ---- */
+  --coral-deep:   #d85a30;   /* buttons and CTAs - pastels fail contrast  */
+  --coral-text:   #7a3a1f;   /* titles sitting on coral headers           */
+  --teal-text:    #1f5f4f;   /* text sitting on mint                      */
+  --border:       #e2e2e2;
+  --muted:        #8a8a8a;
+  --ink:          #1a1a1a;
+
+  /* ---- Additions ---- */
+  --coral-deep-hover:  #c24f29;
+  --coral-deep-active: #a94324;
+  --coral-tint:        #fff1ea;  /* lighter than coral-pastel, for hovers */
+  --mint-mark:         #5cc9ab;  /* the logo mint, for icons and accents  */
+  --mint-tint:         #eafaf5;
+  --surface:           #fafafa;
+  --surface-raised:    #f4f4f4;
+  --danger:            #b3261e;
+  --danger-tint:       #fdecea;
+  --warning:           #8f5708;
+  --warning-tint:      #fdf3e3;
+
+  /* ---- Semantic aliases: what components actually reference ---- */
+  --bg:              var(--white);
+  --bg-subtle:       var(--surface);
+  --card:            var(--white);
+  --header:          var(--coral-pastel);
+  --header-fg:       var(--coral-text);
+  --fg:              var(--ink);
+  --fg-muted:        var(--muted);
+  --primary:         var(--coral-deep);
+  --primary-hover:   var(--coral-deep-hover);
+  --primary-fg:      var(--white);
+  --accent:          var(--mint-pastel);
+  --accent-fg:       var(--teal-text);
+  --line:            var(--border);
+  --ring:            var(--coral-deep);
+
+  --radius-sm: 0.5rem;
+  --radius:    0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgb(26 26 26 / 0.04), 0 4px 16px rgb(26 26 26 / 0.06);
+  --shadow-pop:  0 8px 32px rgb(26 26 26 / 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   Dark theme.
+
+   The pastels are surface colours built for white; laid over a dark ground
+   they turn muddy and lose the contrast they were chosen for. So the roles
+   are preserved and the values are re-derived: coral-pastel becomes a deep
+   coral-brown that still reads as "the coral surface", and the text that sat
+   on it flips to a light tint of the same hue.
+
+   Coral-deep survives unchanged, because it reads as the brand on either
+   ground. Measured: white on #D85A30 is 3.87:1 - it clears AA for large or
+   bold text but NOT the 4.5:1 needed for normal-size labels. Button text is
+   therefore >=16px semibold, and --coral-deep-hover (#C24F29, 4.73:1) is
+   available as a drop-in if you decide small-label CTAs must clear AA
+   outright. See docs/DESIGN.md.
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --coral-pastel: #3a2117;
+    --mint-pastel:  #12332c;
+    --white:        #121212;
+
+    --coral-text:   #ffcdb6;
+    --teal-text:    #8ee0c7;
+    --border:       #2c2c2c;
+    --muted:        #9a9a9a;
+    --ink:          #f2f2f2;
+
+    --coral-tint:      #241410;
+    --mint-tint:       #0e2620;
+    --surface:         #181818;
+    --surface-raised:  #202020;
+    --danger:          #ff6b5e;
+    --danger-tint:     #2c1512;
+    --warning:         #e0a44a;
+    --warning-tint:    #2a1f0d;
+
+    --card:       #1a1a1a;
+    --bg:         #121212;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+    --shadow-pop:  0 8px 32px rgb(0 0 0 / 0.5);
+  }
+}
+
+[data-theme="dark"] {
+  --coral-pastel: #3a2117;
+  --mint-pastel:  #12332c;
+  --white:        #121212;
+
+  --coral-text:   #ffcdb6;
+  --teal-text:    #8ee0c7;
+  --border:       #2c2c2c;
+  --muted:        #9a9a9a;
+  --ink:          #f2f2f2;
+
+  --coral-tint:      #241410;
+  --mint-tint:       #0e2620;
+  --surface:         #181818;
+  --surface-raised:  #202020;
+  --danger:          #ff6b5e;
+  --danger-tint:     #2c1512;
+  --warning:         #e0a44a;
+  --warning-tint:    #2a1f0d;
+
+  --card:       #1a1a1a;
+  --bg:         #121212;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+  --shadow-pop:  0 8px 32px rgb(0 0 0 / 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   Expose the tokens to Tailwind so `bg-header`, `text-accent-fg`,
+   `border-line` and friends exist as utilities.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-bg:          var(--bg);
+  --color-bg-subtle:   var(--bg-subtle);
+  --color-card:        var(--card);
+  --color-header:      var(--header);
+  --color-header-fg:   var(--header-fg);
+  --color-fg:          var(--fg);
+  --color-fg-muted:    var(--fg-muted);
+  --color-primary:     var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg:  var(--primary-fg);
+  --color-accent:      var(--accent);
+  --color-accent-fg:   var(--accent-fg);
+  --color-line:        var(--line);
+  --color-coral-tint:  var(--coral-tint);
+  --color-mint-tint:   var(--mint-tint);
+  --color-mint-mark:   var(--mint-mark);
+  --color-surface:     var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-danger:      var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-warning:     var(--warning);
+  --color-warning-tint: var(--warning-tint);
+
+  --radius-sm:   var(--radius-sm);
+  --radius-md:   var(--radius);
+  --radius-lg:   var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-pop:  var(--shadow-pop);
+
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* -------------------------------------------------------------------------- */
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Riders and couriers use this one-handed at traffic lights; nothing in the
+     app should ever rubber-band horizontally. */
+  overflow-x: hidden;
+}
+
+/* A single visible focus treatment everywhere. Removing outlines without a
+   replacement is the most common accessibility regression in a design system,
+   so it is defined once, here, and never overridden per component. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Respect the OS setting. Delivery apps animate a lot - progress bars, moving
+   pins, sliding sheets - and that is exactly what triggers motion sickness. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Logo variant switching. Both artworks ship in the markup; CSS picks one, so
+   the right logo is painted on the first frame with no hydration flash. The
+   rules mirror the token cascade above exactly: media query for the system
+   default, attribute selectors for an explicit user choice. */
+.fd-logo-dark { display: none; }
+.fd-logo-light { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fd-logo-light { display: none; }
+  :root:not([data-theme="light"]) .fd-logo-dark { display: block; }
+}
+
+[data-theme="dark"] .fd-logo-light { display: none; }
+[data-theme="dark"] .fd-logo-dark { display: block; }
+[data-theme="light"] .fd-logo-light { display: block; }
+[data-theme="light"] .fd-logo-dark { display: none; }
+
+@keyframes fd-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+.fd-skeleton {
+  background: var(--surface-raised);
+  animation: fd-pulse 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}

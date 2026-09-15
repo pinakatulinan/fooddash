@@ -1,0 +1,93 @@
+import type { Metadata } from "next";
+import { Search, SearchX } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/env";
+import { SetupNotice } from "@/components/setup-notice";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DEFAULT_LOCATION, MerchantGrid } from "@/components/customer/merchant-grid";
+import type { MerchantCard } from "@/lib/types/domain";
+
+export const metadata: Metadata = { title: "Search" };
+
+/**
+ * Search runs through the same `nearby_merchants` RPC as discovery, which
+ * matches on store name *and* dish name - so "sisig" finds the store that
+ * sells it rather than returning nothing.
+ *
+ * The form submits with GET, so a search is a real URL: shareable, bookmarkable,
+ * and working before JavaScript loads.
+ */
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  if (!isSupabaseConfigured) return <SetupNotice />;
+
+  const { q = "" } = await searchParams;
+  const term = q.trim();
+
+  let results: MerchantCard[] = [];
+  if (term) {
+    const supabase = await createClient();
+    const { data } = await supabase.rpc("nearby_merchants", {
+      p_lat: DEFAULT_LOCATION.lat,
+      p_lng: DEFAULT_LOCATION.lng,
+      p_radius_m: 7000,
+      p_search: term,
+      p_limit: 40,
+    });
+    results = (data ?? []) as MerchantCard[];
+  }
+
+  return (
+    <>
+      <section className="bg-header px-4 pt-5 pb-6 text-header-fg">
+        <h1 className="text-2xl font-extrabold tracking-tight">Search</h1>
+        <form action="/search" method="get" className="mt-4 flex gap-2">
+          <label htmlFor="q" className="sr-only">
+            Search for a store or a dish
+          </label>
+          <input
+            id="q"
+            name="q"
+            type="search"
+            defaultValue={term}
+            placeholder="Try “adobo”, “coffee”, “silog”"
+            className="h-11 min-w-0 flex-1 rounded-md border border-line bg-card px-3.5 text-base text-fg placeholder:text-fg-muted"
+          />
+          <button
+            type="submit"
+            className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-fg hover:bg-primary-hover"
+          >
+            <Search aria-hidden className="size-4" />
+            Search
+          </button>
+        </form>
+      </section>
+
+      <div className="px-4 py-6">
+        {!term ? (
+          <EmptyState
+            icon={<Search className="size-6" />}
+            title="What are you craving?"
+            description="Search by store name or by dish — we look inside every menu near you."
+          />
+        ) : results.length === 0 ? (
+          <EmptyState
+            icon={<SearchX className="size-6" />}
+            title={`Nothing matched “${term}”`}
+            description="Try a shorter word, or browse what is open near you right now."
+          />
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-fg-muted">
+              {results.length} {results.length === 1 ? "result" : "results"} for “{term}”
+            </p>
+            <MerchantGrid merchants={results} />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
