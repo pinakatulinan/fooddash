@@ -101,8 +101,13 @@ export function RiderLocationTracker() {
             p_lng: pos.coords.longitude,
             p_order_id: assignment?.order_id ?? null,
             p_heading: pos.coords.heading,
-            p_speed_kph: pos.coords.speed != null ? pos.coords.speed * 3.6 : null,
-            p_accuracy_m: pos.coords.accuracy,
+            // Clamped, not just widened on the DB side (0014): a wildly
+            // noisy reading - GPS speed spikes right after acquiring a fix,
+            // WiFi/IP-fallback accuracy in the tens of thousands of metres -
+            // must never be the thing that blocks the position update itself,
+            // which is the actual point of this call.
+            p_speed_kph: pos.coords.speed != null ? Math.min(pos.coords.speed * 3.6, 999) : null,
+            p_accuracy_m: pos.coords.accuracy != null ? Math.min(pos.coords.accuracy, 50_000) : null,
           });
           if (!cancelled && !error) setPermissionDenied(false);
         },

@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { OrderStatusPill } from "@/components/ui/status-pill";
 import { CancelOrder } from "@/components/customer/cancel-order";
 import { OrderTrackingMap } from "@/components/customer/order-tracking-map";
+import { OrderChat } from "@/components/order/order-chat";
 import { RateOrderForm } from "@/components/customer/rate-order-form";
 import { TicketThread } from "@/components/customer/ticket-thread";
 import { ReportProblemPanel } from "@/components/customer/report-problem-panel";
@@ -65,6 +66,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     .eq("order_id", id)
     .order("created_at", { ascending: false })
     .order("created_at", { referencedTable: "messages", ascending: true });
+
+  const { data: messages } = t.rider
+    ? await supabase
+        .from("order_messages")
+        .select("id, sender_id, body, created_at")
+        .eq("order_id", id)
+        .order("created_at", { ascending: true })
+    : { data: null };
 
   return (
     <>
@@ -129,8 +138,26 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   {t.rider.plate_number && ` · ${t.rider.plate_number}`}
                 </p>
               </div>
+              {t.rider.phone && (
+                <a
+                  href={`tel:${t.rider.phone}`}
+                  aria-label={`Call ${t.rider.first_name}`}
+                  className="grid size-10 shrink-0 place-items-center rounded-pill bg-header text-header-fg"
+                >
+                  <Phone aria-hidden className="size-4" />
+                </a>
+              )}
             </div>
           </Card>
+        )}
+
+        {user && t.rider && (
+          <OrderChat
+            orderId={t.order_id}
+            currentUserId={user.id}
+            messages={messages ?? []}
+            canSend={!["delivered", "cancelled", "failed"].includes(t.status)}
+          />
         )}
 
         <section aria-labelledby="progress">

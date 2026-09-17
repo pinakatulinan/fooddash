@@ -173,6 +173,7 @@ export interface OrderTracking {
     rider_id: string;
     first_name: string;
     avatar_url: string | null;
+    phone: string | null;
     vehicle: VehicleType;
     plate_number: string | null;
     rating_avg: number;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MapPin, Navigation, Phone, Store } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -9,10 +9,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
 import { OrderStatusPill } from "@/components/ui/status-pill";
 import { DeliveryActions } from "@/components/rider/delivery-actions";
+import { OrderTrackingMap } from "@/components/customer/order-tracking-map";
+import { OrderChat } from "@/components/order/order-chat";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
 import { ORDER_STATUS } from "@/lib/domain/order-status";
 import { formatCentavos } from "@/lib/format";
-import type { OrderStatus } from "@/lib/types/domain";
+import type { OrderStatus, OrderTracking } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Active delivery" };
 
@@ -71,6 +73,20 @@ export default async function RiderActivePage() {
 
   const drop = order.delivery_address ?? {};
 
+  // Same RPC the customer's tracking page uses - it already returns store
+  // and drop-off coordinates plus this rider's own live position (v_rider
+  // resolves to whoever is asking), so there is nothing new to expose here.
+  const { data: tracking } = await supabase.rpc("order_tracking", { p_order_id: order.id });
+  const t = tracking as OrderTracking | null;
+
+  const { data: messages } = await supabase
+    .from("order_messages")
+    .select("id, sender_id, body, created_at")
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+
+  const { user } = await getCurrentUser();
+
   return (
     <>
       <RealtimeRefresh table="orders" filter={`id=eq.${order.id}`} />
@@ -90,6 +106,21 @@ export default async function RiderActivePage() {
               Collect {formatCentavos(order.total_centavos)} in cash
             </p>
           </div>
+        )}
+
+        {t?.merchant.lat != null && t.merchant.lng != null && (
+          <OrderTrackingMap
+            merchant={{ lat: t.merchant.lat, lng: t.merchant.lng, name: t.merchant.name }}
+            dropoff={t.dropoff.lat != null && t.dropoff.lng != null ? { lat: t.dropoff.lat, lng: t.dropoff.lng } : null}
+            rider={
+              t.rider && t.rider.lat != null && t.rider.lng != null
+                ? { lat: t.rider.lat, lng: t.rider.lng, first_name: t.rider.first_name }
+                : null
+            }
+            // Before pickup, the direction that matters is to the store;
+            // once the food is on the bike, it flips to the drop-off.
+            highlightTarget={order.status === "picked_up" || order.status === "arrived" ? "dropoff" : "merchant"}
+          />
         )}
 
         <Card>
@@ -140,6 +171,10 @@ export default async function RiderActivePage() {
             )}
           </div>
         </Card>
+
+        {user && (
+          <OrderChat orderId={order.id} currentUserId={user.id} messages={messages ?? []} canSend />
+        )}
 
         <DeliveryActions orderId={order.id} status={order.status} />
       </div>
