@@ -53,8 +53,8 @@ export function AvailabilityToggle({
       <div className="rounded-md border border-line bg-warning-tint px-4 py-3">
         <p className="text-sm font-bold text-warning">Verification pending</p>
         <p className="mt-0.5 text-sm text-fg-muted">
-          Ops is reviewing your licence and clearance. You will be able to go online as soon as
-          that clears.
+          You can go online once ops have approved all your documents. Upload anything still
+          missing, then check back here.
         </p>
       </div>
     );

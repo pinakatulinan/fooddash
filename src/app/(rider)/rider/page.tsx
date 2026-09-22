@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Bike, Wallet } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -5,6 +6,7 @@ import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LinkButton } from "@/components/ui/button";
 import { AvailabilityToggle } from "@/components/rider/availability-toggle";
 import { OfferActions } from "@/components/rider/offer-actions";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
@@ -32,13 +34,18 @@ export default async function RiderJobsPage() {
     .maybeSingle();
 
   if (!rider) {
+    // A rider account with no riders row has not applied yet - the row is
+    // only ever created by submit_rider_application. Anyone else (an admin
+    // poking around the rider surface) just sees the explanation.
+    if (profile?.role === "rider") redirect("/rider/onboarding");
+
     return (
       <>
         <ScreenHeader title="Rider" subtitle={profile?.full_name ?? undefined} />
         <EmptyState
           icon={<Bike className="size-6" />}
-          title="This account is not a rider yet"
-          description="Complete rider signup and upload your licence, OR/CR and NBI clearance to start receiving jobs."
+          title="This account is not a rider"
+          description="Only accounts registered as riders can receive delivery jobs."
         />
       </>
     );
@@ -68,6 +75,22 @@ export default async function RiderJobsPage() {
       </ScreenHeader>
 
       <div className="space-y-6 px-4 py-5">
+        {!rider.is_verified && (
+          <Card>
+            <CardBody className="flex items-center gap-3 p-4">
+              <div className="min-w-0 flex-1">
+                <p className="font-bold">Finish your verification</p>
+                <p className="mt-0.5 text-sm text-fg-muted">
+                  See which documents are approved and upload anything still missing.
+                </p>
+              </div>
+              <LinkButton href="/rider/onboarding" size="sm">
+                Open
+              </LinkButton>
+            </CardBody>
+          </Card>
+        )}
+
         {/* COD float. A rider over the cap stops being offered cash orders, so
             this number has to be visible before it becomes a surprise. */}
         <Card>

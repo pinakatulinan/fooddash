@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <div className="grid min-h-dvh place-items-center bg-bg px-6 py-16">
       <div className="w-full max-w-md text-center">
-        <Logo height={32} className="mx-auto mb-10" />
+        <Logo height={65} className="mx-auto mb-10" />
 
         <p className="font-mono text-sm font-bold tracking-[0.2em] text-fg-muted uppercase">
           404

@@ -143,13 +143,21 @@ four route groups is how one word ends up meaning two things.
 
 ## Replacing the logo
 
-Drop the final artwork over these three files; no code changes needed.
+Drop new artwork over these three files; no code changes needed as long as it
+is a transparent PNG or SVG (`components/brand/logo.tsx` reads the aspect
+ratio from a constant next to the import, so update that if the new art's
+proportions differ from what's there).
 
 ```
-public/brand/fooddash-light.svg   full lockup, light grounds  (428×200)
-public/brand/fooddash-dark.svg    full lockup, dark grounds   (428×200)
-public/brand/fooddash-mark.svg    icon only — favicon, PWA    (210×200)
+public/brand/fooddash-light.png   full lockup, light grounds  (2138×1000)
+public/brand/fooddash-dark.png    full lockup, dark grounds   (2138×1000)
+public/brand/fooddash-mark.png    icon only, square canvas    (620×620)
 ```
 
-The files currently in the repo are **placeholders** built from the brand
-colours. They approximate the wing-and-D mark but are not the supplied artwork.
+This is the supplied artwork (the wing-and-D mark, teal/coral two-tone
+wordmark) — the placeholder SVGs that shipped earlier are gone. It arrived as
+two flat lockups (logo composited onto a solid white / solid black
+rectangle), not transparent assets, so the background was chroma-keyed out
+before landing here. Anything dropped in going forward should already be
+transparent — the auth screen renders this logo directly on the coral header
+band, so a flat white background would show as a visible box.

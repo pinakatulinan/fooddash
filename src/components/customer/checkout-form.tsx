@@ -23,13 +23,11 @@ interface AddressOption {
 
 const TIP_PRESETS_CENTAVOS = [0, 2000, 3000, 5000];
 
-// Only COD can actually be fulfilled today — selecting GCash/Maya would create
-// an order stuck in pending_payment forever, since the provider Edge Function
-// is not built yet. They are shown, not hidden, so the roadmap is visible.
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; available: boolean }[] = [
-  { value: "cod", label: "Cash on delivery", available: true },
-  { value: "gcash", label: "GCash", available: false },
-  { value: "maya", label: "Maya", available: false },
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: "cod", label: "Cash on delivery" },
+  { value: "gcash", label: "GCash" },
+  { value: "maya", label: "Maya" },
+  { value: "card", label: "Card" },
 ];
 
 export function CheckoutForm({
@@ -49,7 +47,7 @@ export function CheckoutForm({
   const [promoCode, setPromoCode] = React.useState("");
   const [tipCentavos, setTipCentavos] = React.useState(0);
   const [notes, setNotes] = React.useState("");
-  const [paymentMethod] = React.useState<PaymentMethod>("cod");
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("cod");
 
   const [quote, setQuote] = React.useState(initialQuote);
   const [quoting, setQuoting] = React.useState(false);
@@ -103,7 +101,29 @@ export function CheckoutForm({
       return;
     }
 
-    router.push(`/orders/${orderId}`);
+    if (paymentMethod === "cod") {
+      router.push(`/orders/${orderId}`);
+      return;
+    }
+
+    // Order exists in 'pending_payment' the moment place_order returns -
+    // this call only starts the PayMongo checkout for it, exactly what
+    // create-checkout/route.ts also does when retried from the tracking page.
+    const res = await fetch("/api/payments/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+    });
+    const payload = await res.json().catch(() => null);
+
+    if (!res.ok || !payload?.checkoutUrl) {
+      // The order already exists and can be retried from its own tracking
+      // page, so send them there rather than stranding them on checkout.
+      router.push(`/orders/${orderId}`);
+      return;
+    }
+
+    window.location.href = payload.checkoutUrl;
   }
 
   return (
@@ -179,18 +199,29 @@ export function CheckoutForm({
           Payment
         </h2>
         <div className="space-y-2">
-          {PAYMENT_METHODS.map((m) => (
-            <Card key={m.value} className={m.available ? "border-primary" : "opacity-50"}>
-              <div className="flex items-center justify-between p-4">
-                <span className="font-semibold">{m.label}</span>
-                {m.available ? (
-                  <Pill tone="success" showDot={false}>Selected</Pill>
-                ) : (
-                  <Pill tone="neutral" showDot={false}>Coming soon</Pill>
-                )}
-              </div>
-            </Card>
-          ))}
+          {PAYMENT_METHODS.map((m) => {
+            const active = paymentMethod === m.value;
+            return (
+              <label key={m.value}>
+                <Card className={cn("cursor-pointer transition-colors", active && "border-primary")}>
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="payment-method"
+                        value={m.value}
+                        checked={active}
+                        onChange={() => setPaymentMethod(m.value)}
+                        className="sr-only"
+                      />
+                      <span className="font-semibold">{m.label}</span>
+                    </div>
+                    {active && <Pill tone="success" showDot={false}>Selected</Pill>}
+                  </div>
+                </Card>
+              </label>
+            );
+          })}
         </div>
       </section>
 
@@ -289,11 +320,17 @@ export function CheckoutForm({
       )}
 
       <Button size="lg" fullWidth onClick={handlePlaceOrder} loading={placing} disabled={!canPlace}>
-        {quote ? `Place order — ${formatCentavos(quote.total_centavos)}` : "Place order"}
+        {paymentMethod === "cod"
+          ? quote
+            ? `Place order — ${formatCentavos(quote.total_centavos)}`
+            : "Place order"
+          : "Continue to payment"}
       </Button>
 
       <p className="text-center text-xs text-fg-muted">
-        You will pay {PAYMENT_METHODS[0].label.toLowerCase()} when your order arrives.
+        {paymentMethod === "cod"
+          ? "You will pay cash on delivery when your order arrives."
+          : "You'll finish payment on PayMongo's secure page, then come back here."}
       </p>
     </div>
   );

@@ -31,7 +31,7 @@ interface Item {
   option_groups: MenuOptionGroup[];
 }
 
-export function AddToCartControl({ item }: { item: Item }) {
+export function AddToCartControl({ item, compact = false }: { item: Item; compact?: boolean }) {
   const router = useRouter();
   const groups = item.option_groups ?? [];
   const hasGroups = groups.length > 0;
@@ -147,7 +147,46 @@ export function AddToCartControl({ item }: { item: Item }) {
   }
 
   // A simple item with no choices to make: a stepper and one button, no panel.
+  // `compact` is the same control, just folded into a small floating cluster
+  // for the image-corner placement (see MenuSection) instead of a full row.
   if (!hasGroups) {
+    if (compact) {
+      return (
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-1 rounded-pill border border-line bg-card p-1 shadow-card">
+            <button
+              type="button"
+              aria-label="Decrease quantity"
+              onClick={() => setQuantity((v) => Math.max(1, v - 1))}
+              disabled={quantity <= 1}
+              className="grid size-6 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised disabled:opacity-30"
+            >
+              <Minus aria-hidden className="size-3" />
+            </button>
+            <span className="w-4 text-center text-xs font-bold tabular-nums">{quantity}</span>
+            <button
+              type="button"
+              aria-label="Increase quantity"
+              onClick={() => setQuantity((v) => Math.min(20, v + 1))}
+              className="grid size-6 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
+            >
+              <Plus aria-hidden className="size-3" />
+            </button>
+            <button
+              type="button"
+              aria-label="Add to cart"
+              onClick={handleAdd}
+              disabled={submitting}
+              className="ml-0.5 grid size-7 place-items-center rounded-pill bg-primary text-primary-fg transition-transform active:scale-90 disabled:opacity-60"
+            >
+              {justAdded ? <Check aria-hidden className="size-3.5" /> : <Plus aria-hidden className="size-3.5" />}
+            </button>
+          </div>
+          {error && <p role="alert" className="max-w-32 text-right text-xs text-danger">{error}</p>}
+        </div>
+      );
+    }
+
     return (
       <div className="flex shrink-0 items-center gap-2">
         <Stepper value={quantity} onChange={setQuantity} />

@@ -60,6 +60,7 @@ export function OrderTrackingMap({
   const mapRef = React.useRef<LeafletMap | null>(null);
   const riderMarkerRef = React.useRef<LeafletMarker | null>(null);
   const routeLineRef = React.useRef<LeafletPolyline | null>(null);
+  const resizeObserverRef = React.useRef<ResizeObserver | null>(null);
   const [distanceLabel, setDistanceLabel] = React.useState<string | null>(null);
 
   const target = highlightTarget === "merchant" ? merchant : highlightTarget === "dropoff" ? dropoff : null;
@@ -75,19 +76,18 @@ export function OrderTrackingMap({
       const map = L.map(containerRef.current, { zoomControl: false });
       mapRef.current = map;
 
-      // CARTO's free basemaps (no key) instead of raw OSM tiles - Voyager
-      // is muted enough that the coral pins and route line stay the thing
-      // your eye lands on, and it swaps to the dark set automatically so a
-      // light basemap never sits inside an otherwise-dark theme.
-      const isDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-      L.tileLayer(
-        `https://{s}.basemaps.cartocdn.com/rastertiles/${isDark ? "dark_all" : "voyager"}/{z}/{x}/{y}{r}.png`,
-        {
-          attribution:
-            '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 20,
-        },
-      ).addTo(map);
+      // CARTO's free "Voyager" basemap (no key) instead of raw OSM tiles -
+      // muted enough that the coral pins and route line stay the thing your
+      // eye lands on. Always the light set: the app is pinned to light mode
+      // (data-theme="light" in the root layout) regardless of device
+      // preference, so a prefers-color-scheme check here would pick a dark
+      // basemap under an otherwise all-light app on a device set to dark
+      // mode - which is exactly the mismatch this used to produce.
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution:
+          '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 20,
+      }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
       const pin = (emoji: string, size: number) =>
@@ -113,10 +113,23 @@ export function OrderTrackingMap({
       }
 
       map.fitBounds(bounds, { padding: [32, 32], maxZoom: 16 });
+
+      // Leaflet sizes its tile grid from the container's dimensions at the
+      // moment it's created. On a phone the address bar is often still
+      // resizing the viewport right then, so that first read can be wrong
+      // (sometimes zero) and nothing ever prompts Leaflet to re-measure -
+      // the map is there, just permanently blank. A ResizeObserver catches
+      // that first real layout and any later one (rotation, browser chrome
+      // showing/hiding) and tells it to recompute.
+      const observer = new ResizeObserver(() => mapRef.current?.invalidateSize());
+      observer.observe(containerRef.current);
+      resizeObserverRef.current = observer;
     })();
 
     return () => {
       cancelled = true;
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       riderMarkerRef.current = null;

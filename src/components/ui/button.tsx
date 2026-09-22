@@ -66,7 +66,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       className={cn(
         "inline-flex items-center justify-center font-semibold whitespace-nowrap",
-        "transition-[background-color,border-color,filter] duration-150",
+        "transition-[background-color,border-color,filter,transform] duration-150",
+        // The tactile press-down every DoorDash tap has - scale rather than
+        // opacity, so it reads as "physically pushed" not "loading."
+        "active:scale-[0.97]",
         "disabled:opacity-50 disabled:pointer-events-none",
         VARIANTS[variant],
         SIZES[size],
@@ -106,7 +109,8 @@ export function LinkButton({
       href={href}
       className={cn(
         "inline-flex items-center justify-center font-semibold whitespace-nowrap",
-        "transition-[background-color,border-color,filter] duration-150",
+        "transition-[background-color,border-color,filter,transform] duration-150",
+        "active:scale-[0.97]",
         VARIANTS[variant],
         SIZES[size],
         fullWidth && "w-full",

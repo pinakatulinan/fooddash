@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
@@ -78,7 +79,9 @@ export default async function AdminRidersPage() {
           rows={riders.map((r) => ({
             name: (
               <div>
-                <span className="font-bold">{r.profiles?.full_name ?? "—"}</span>
+                <Link href={`/admin/riders/${r.id}`} className="font-bold text-primary underline-offset-2 hover:underline">
+                  {r.profiles?.full_name ?? "—"}
+                </Link>
                 {!r.is_verified && <span className="ml-2 text-xs text-warning">unverified</span>}
                 {r.is_suspended && <span className="ml-2 text-xs text-danger">suspended</span>}
               </div>

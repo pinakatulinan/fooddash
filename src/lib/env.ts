@@ -41,3 +41,36 @@ export function requireServiceRoleKey(): string {
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+/** PayMongo secret key. Server-side only - it can create real charges. */
+export function requirePaymongoSecretKey(): string {
+  const key = process.env.PAYMONGO_SECRET_KEY;
+  if (!key) {
+    throw new Error("PAYMONGO_SECRET_KEY is missing. Online payments cannot be created without it.");
+  }
+  return key;
+}
+
+/** Signing secret for the PayMongo webhook endpoint. */
+export function requirePaymongoWebhookSecret(): string {
+  const key = process.env.PAYMONGO_WEBHOOK_SECRET;
+  if (!key) {
+    throw new Error("PAYMONGO_WEBHOOK_SECRET is missing. Webhook events cannot be verified without it.");
+  }
+  return key;
+}
+
+/**
+ * Shared secret for the payment-reconciliation sweep
+ * (/api/payments/reconcile). Not a Supabase or PayMongo credential - this
+ * one is made up locally and just needs to match whatever calls the route
+ * (a scheduler once deployed; a local loop during dev), so nobody else can
+ * trigger a sweep of every pending order.
+ */
+export function requireReconcileSecret(): string {
+  const key = process.env.PAYMENT_RECONCILE_SECRET;
+  if (!key) {
+    throw new Error("PAYMENT_RECONCILE_SECRET is missing. Set any random string for it in .env.local.");
+  }
+  return key;
+}

@@ -86,7 +86,7 @@ export function SideNav({ surface, title }: { surface: NavSurface; title?: strin
         <div className="flex items-start justify-between px-5 py-5">
           <div>
             <Link href="/" aria-label="FoodDash home">
-              <Logo height={26} />
+              <Logo height={65} />
             </Link>
             {title && (
               <p className="mt-3 text-xs font-bold tracking-wider text-fg-muted uppercase">

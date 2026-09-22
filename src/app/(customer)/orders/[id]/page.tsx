@@ -7,6 +7,7 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { Card } from "@/components/ui/card";
 import { OrderStatusPill } from "@/components/ui/status-pill";
 import { CancelOrder } from "@/components/customer/cancel-order";
+import { RetryPaymentButton } from "@/components/customer/retry-payment-button";
 import { OrderTrackingMap } from "@/components/customer/order-tracking-map";
 import { OrderChat } from "@/components/order/order-chat";
 import { RateOrderForm } from "@/components/customer/rate-order-form";
@@ -258,6 +259,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         )}
 
         {user && <ReportProblemPanel orderId={t.order_id} customerId={user.id} />}
+
+        {t.status === "pending_payment" && t.payment_status === "pending" && (
+          <RetryPaymentButton orderId={t.order_id} />
+        )}
 
         <CancelOrder orderId={t.order_id} status={t.status} />
 

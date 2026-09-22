@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { EmptyState } from "@/components/ui/empty-state";
-import { DEFAULT_LOCATION, MerchantGrid } from "@/components/customer/merchant-grid";
+import { DEFAULT_LOCATION } from "@/components/customer/merchant-grid";
+import { DiscoveryFilters } from "@/components/customer/discovery-filters";
 import type { MerchantCard } from "@/lib/types/domain";
 
 /**
@@ -17,9 +18,31 @@ export default async function DiscoverPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
 
   const supabase = await createClient();
+
+  const { data: address } = await supabase
+    .from("addresses")
+    .select("id, barangay, city")
+    .is("archived_at", null)
+    .order("is_default", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Falls back to the citywide default for a guest, or a signed-in customer
+  // who hasn't saved an address yet. The header has no room for a full
+  // street address, so this shows the neighbourhood, not the house number.
+  let location = DEFAULT_LOCATION;
+  if (address) {
+    const { data: latlng } = (await supabase
+      .rpc("address_location_latlng", { p_address_id: address.id })
+      .maybeSingle()) as unknown as { data: { lat: number; lng: number } | null };
+    if (latlng?.lat != null && latlng?.lng != null) {
+      location = { lat: latlng.lat, lng: latlng.lng, label: address.barangay || address.city };
+    }
+  }
+
   const { data, error } = await supabase.rpc("nearby_merchants", {
-    p_lat: DEFAULT_LOCATION.lat,
-    p_lng: DEFAULT_LOCATION.lng,
+    p_lat: location.lat,
+    p_lng: location.lng,
     p_radius_m: 7000,
     p_limit: 40,
   });
@@ -31,9 +54,9 @@ export default async function DiscoverPage() {
   return (
     <>
       <section className="bg-header px-4 pt-5 pb-6 text-header-fg">
-        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase opacity-80">
-          <MapPin aria-hidden className="size-3.5" />
-          Delivering to {DEFAULT_LOCATION.label}
+        <p className="flex items-center gap-1.5 truncate text-xs font-semibold tracking-wide uppercase opacity-80">
+          <MapPin aria-hidden className="size-3.5 shrink-0" />
+          <span className="truncate">Delivering to {location.label}</span>
         </p>
         <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Where food finds you.</h1>
         <p className="mt-1 text-sm opacity-80">
@@ -55,8 +78,7 @@ export default async function DiscoverPage() {
         />
       ) : (
         <div className="space-y-8 px-4 py-6">
-          <MerchantGrid heading="Open now" merchants={open} />
-          <MerchantGrid heading="Currently closed" merchants={closed} dimmed />
+          <DiscoveryFilters open={open} closed={closed} />
         </div>
       )}
     </>

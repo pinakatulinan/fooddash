@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
@@ -64,7 +65,9 @@ export default async function AdminMerchantsPage() {
           rows={merchants.map((m) => ({
             name: (
               <div>
-                <span className="font-bold">{m.name}</span>
+                <Link href={`/admin/merchants/${m.id}`} className="font-bold text-primary underline-offset-2 hover:underline">
+                  {m.name}
+                </Link>
                 {!m.is_accepting_orders && m.status === "approved" && (
                   <span className="ml-2 text-xs text-fg-muted">paused</span>
                 )}
@@ -82,14 +85,6 @@ export default async function AdminMerchantsPage() {
           }))}
           empty="No merchants yet"
         />
-
-        {/* Approving a store writes merchants.status, which the column grants in
-            0009 withhold from every browser session. It runs through a server
-            action with the service role and an audit-log entry. */}
-        <p className="rounded-md border border-line bg-surface px-4 py-3 text-sm text-fg-muted">
-          Approve, suspend and commission changes are privileged writes — they need the
-          service-role path with audit logging, which is the next piece of the ops console.
-        </p>
       </div>
     </>
   );

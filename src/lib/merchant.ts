@@ -19,7 +19,7 @@ export async function getCurrentMerchant() {
        merchants(id, name, slug, status, rejection_reason, is_accepting_orders,
                  paused_until, pause_reason, commission_rate, logo_url, cover_url,
                  prep_time_minutes, min_order_centavos, phone, line1, barangay,
-                 city, province, rating_avg, rating_count)`,
+                 city, province, postal_code, rating_avg, rating_count)`,
     )
     .limit(1)
     .maybeSingle();
@@ -46,6 +46,7 @@ export async function getCurrentMerchant() {
       barangay: string | null;
       city: string | null;
       province: string | null;
+      postal_code: string | null;
       rating_avg: number;
       rating_count: number;
     }),

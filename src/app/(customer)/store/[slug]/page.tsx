@@ -68,15 +68,6 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
   return (
     <>
-      <div className="grid h-40 place-items-center bg-coral-tint">
-        {merchant.cover_url ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={merchant.cover_url} alt="" className="size-full object-cover" />
-        ) : (
-          <UtensilsCrossed aria-hidden className="size-10 text-primary/30" />
-        )}
-      </div>
-
       <header className="bg-header px-4 pt-5 pb-6 text-header-fg">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
@@ -192,50 +183,66 @@ function MenuSection({
     <section>
       <h2 className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">{title}</h2>
       <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Card className={item.is_available ? undefined : "opacity-55"}>
-              <div className="p-4">
-                <div className="flex items-start gap-4">
-                  {item.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image_url}
-                      alt=""
-                      className="size-16 shrink-0 rounded-md border border-line object-cover"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold">{item.name}</h3>
-                      {item.is_popular && (
-                        <Pill tone="active" showDot={false}>
-                          Popular
-                        </Pill>
+        {items.map((item) => {
+          const hasGroups = item.option_groups.length > 0;
+          return (
+            <li key={item.id}>
+              <Card className={item.is_available ? undefined : "opacity-55"}>
+                <div className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-bold">{item.name}</h3>
+                        {item.is_popular && (
+                          <Pill tone="active" showDot={false}>
+                            Popular
+                          </Pill>
+                        )}
+                        {!item.is_available && (
+                          <Pill tone="neutral" showDot={false}>
+                            Sold out
+                          </Pill>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="mt-1 text-sm text-fg-muted">{item.description}</p>
                       )}
-                      {!item.is_available && (
-                        <Pill tone="neutral" showDot={false}>
-                          Sold out
-                        </Pill>
+                      <p className="mt-2 font-bold tabular-nums">
+                        {formatCentavos(item.base_price_centavos)}
+                      </p>
+                    </div>
+
+                    {/* Image on the right, with the add control riding its
+                        corner for a simple item - the description column on
+                        the left is what your eye actually reads first. */}
+                    <div className="relative shrink-0">
+                      {item.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.image_url}
+                          alt=""
+                          className="size-24 rounded-md border border-line object-cover"
+                        />
+                      ) : (
+                        <div className="size-24 rounded-md border border-line bg-surface-raised" />
+                      )}
+                      {item.is_available && !hasGroups && (
+                        <div className="absolute -right-2 -bottom-2">
+                          <AddToCartControl item={item} compact />
+                        </div>
                       )}
                     </div>
-                    {item.description && (
-                      <p className="mt-1 text-sm text-fg-muted">{item.description}</p>
-                    )}
                   </div>
-                  <p className="shrink-0 font-bold tabular-nums">
-                    {formatCentavos(item.base_price_centavos)}
-                  </p>
+                  {item.is_available && hasGroups && (
+                    <div className="mt-3">
+                      <AddToCartControl item={item} />
+                    </div>
+                  )}
                 </div>
-                {item.is_available && (
-                  <div className="mt-3">
-                    <AddToCartControl item={item} />
-                  </div>
-                )}
-              </div>
-            </Card>
-          </li>
-        ))}
+              </Card>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

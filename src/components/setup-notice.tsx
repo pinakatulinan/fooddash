@@ -17,7 +17,7 @@ export function SetupNotice() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-6 py-16">
-      <Logo height={40} className="mb-8" />
+      <Logo height={65} className="mb-8" />
       <h1 className="text-2xl font-extrabold tracking-tight">Connect a Supabase project</h1>
       <p className="mt-2 text-sm text-fg-muted">
         The app is running, but it has nowhere to read data from yet. Four steps and it will

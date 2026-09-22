@@ -11,12 +11,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/status-pill";
 import { PauseStoreControl } from "@/components/merchant/pause-store-control";
 import { MerchantImageUpload } from "@/components/merchant/merchant-image-upload";
+import { MerchantAddressForm } from "@/components/merchant/address-form";
+import { MerchantHoursEditor } from "@/components/merchant/hours-editor";
+import { MerchantDocumentUpload } from "@/components/merchant/document-upload";
+import { SubmitForReviewButton } from "@/components/merchant/submit-for-review-button";
 import { signOut } from "@/app/(auth)/actions";
-import { formatCentavos, displayPhone } from "@/lib/format";
+import { formatCentavos, displayPhone, manilaTodayISO } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Store settings" };
-
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default async function MerchantSettingsPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
@@ -32,16 +34,19 @@ export default async function MerchantSettingsPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: hours }, { data: docs }] = await Promise.all([
+  const [{ data: hours }, { data: docs }, { data: latlng }] = await Promise.all([
     supabase
       .from("merchant_hours")
-      .select("id, day_of_week, opens_at, closes_at, closes_next_day")
+      .select("day_of_week, opens_at, closes_at, closes_next_day")
       .eq("merchant_id", merchant.id)
       .order("day_of_week"),
     supabase
       .from("merchant_documents")
-      .select("id, doc_type, status, expires_at")
+      .select("id, doc_type, storage_path, status, review_note, expires_at, created_at")
       .eq("merchant_id", merchant.id),
+    supabase.rpc("merchant_location_latlng", { p_merchant_id: merchant.id }).maybeSingle() as unknown as Promise<{
+      data: { lat: number; lng: number } | null;
+    }>,
   ]);
 
   return (
@@ -91,19 +96,31 @@ export default async function MerchantSettingsPage() {
         <Section title="Store">
           <Row label="Name" value={merchant.name} />
           <Row label="Status" value={merchant.status} />
-          {merchant.status === "rejected" && merchant.rejection_reason && (
+          {(merchant.status === "rejected" || merchant.status === "suspended") && merchant.rejection_reason && (
             <Row label="Why" value={merchant.rejection_reason} />
           )}
           <Row label="Phone" value={displayPhone(merchant.phone)} />
-          <Row
-            label="Address"
-            value={
-              [merchant.line1, merchant.barangay, merchant.city, merchant.province]
-                .filter(Boolean)
-                .join(", ") || "—"
-            }
-          />
         </Section>
+
+        <section aria-labelledby="address">
+          <h2 id="address" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">Address</h2>
+          <Card>
+            <div className="p-4">
+              <MerchantAddressForm
+                merchantId={merchant.id}
+                initial={{
+                  line1: merchant.line1,
+                  barangay: merchant.barangay,
+                  city: merchant.city,
+                  province: merchant.province,
+                  postal_code: merchant.postal_code,
+                  lat: latlng?.lat ?? null,
+                  lng: latlng?.lng ?? null,
+                }}
+              />
+            </div>
+          </Card>
+        </section>
 
         <Section title="Ordering">
           <Row label="Prep time" value={`${merchant.prep_time_minutes} minutes`} />
@@ -119,40 +136,40 @@ export default async function MerchantSettingsPage() {
           />
         </Section>
 
-        <Section title="Opening hours">
-          {(hours ?? []).length === 0 ? (
-            <p className="px-4 py-3 text-sm text-fg-muted">
-              No hours set — the store will read as closed to customers.
-            </p>
-          ) : (
-            hours!.map((h) => (
-              <Row
-                key={h.id}
-                label={DAYS[h.day_of_week]}
-                value={`${h.opens_at.slice(0, 5)} – ${h.closes_at.slice(0, 5)}${
-                  h.closes_next_day ? " (next day)" : ""
-                }`}
-              />
-            ))
-          )}
-        </Section>
+        <section aria-labelledby="hours">
+          <h2 id="hours" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">Opening hours</h2>
+          <Card>
+            <div className="p-4">
+              <MerchantHoursEditor merchantId={merchant.id} hours={hours ?? []} />
+            </div>
+          </Card>
+        </section>
 
-        <Section title="Documents">
-          {(docs ?? []).length === 0 ? (
-            <p className="px-4 py-3 text-sm text-fg-muted">
-              No permits uploaded. Ops reviews business permit, BIR registration and sanitary permit
-              before a store goes live.
-            </p>
-          ) : (
-            docs!.map((d) => (
-              <Row key={d.id} label={d.doc_type.replace(/_/g, " ")} value={d.status} />
-            ))
-          )}
-        </Section>
+        <section aria-labelledby="documents">
+          <h2 id="documents" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">Documents</h2>
+          <MerchantDocumentUpload merchantId={merchant.id} documents={docs ?? []} today={manilaTodayISO()} />
+        </section>
 
-        <p className="text-center text-sm text-fg-muted">
-          Editing opening hours and documents is the next piece of the merchant console.
-        </p>
+        {(merchant.status === "draft" || merchant.status === "rejected") && (
+          <section aria-labelledby="submit" className="space-y-2">
+            <h2 id="submit" className="text-sm font-bold tracking-wide text-fg-muted uppercase">Go live</h2>
+            <p className="text-sm text-fg-muted">
+              Once your address, at least one day of opening hours and every permit above are in,
+              submit your store for ops to review.
+            </p>
+            <SubmitForReviewButton merchantId={merchant.id} />
+          </section>
+        )}
+        {merchant.status === "pending_review" && (
+          <p className="rounded-md border border-line bg-surface px-4 py-3 text-center text-sm text-fg-muted">
+            Awaiting review from FoodDash ops.
+          </p>
+        )}
+        {merchant.status === "suspended" && (
+          <p className="rounded-md border border-line bg-danger-tint px-4 py-3 text-center text-sm text-danger">
+            This store is suspended and cannot take orders. Contact FoodDash support to resolve it.
+          </p>
+        )}
 
         <form action={signOut}>
           <Button type="submit" variant="secondary" fullWidth>

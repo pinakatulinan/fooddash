@@ -2,40 +2,59 @@ import Link from "next/link";
 import { Clock, Star, UtensilsCrossed } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/status-pill";
+import { cn } from "@/lib/utils";
 import { formatCentavosCompact, formatDistance } from "@/lib/format";
 import type { MerchantCard } from "@/lib/types/domain";
 
-/** One store card. Shared by discovery and search so they cannot drift apart. */
+/**
+ * One store card. Shared by discovery and search so they cannot drift apart.
+ *
+ * Image-forward on purpose: the photo is the thing a hungry person actually
+ * scans a list on, so it gets more height than a details row would need, and
+ * the rating rides on top of it as a floating badge rather than competing
+ * for space in the text block underneath.
+ */
 export function MerchantTile({ merchant, dimmed = false }: { merchant: MerchantCard; dimmed?: boolean }) {
   return (
-    <Card interactive className={dimmed ? "opacity-60" : undefined}>
+    <Card interactive className={dimmed ? "opacity-70" : undefined}>
       <Link href={`/store/${merchant.slug}`} className="block">
-        <div className="grid h-28 place-items-center bg-coral-tint">
+        <div className="relative h-40 bg-coral-tint">
           {merchant.cover_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={merchant.cover_url} alt="" className="size-full object-cover" />
+            <img
+              src={merchant.cover_url}
+              alt=""
+              className={cn("size-full object-cover", dimmed && "grayscale")}
+            />
           ) : (
-            <UtensilsCrossed aria-hidden className="size-7 text-primary/40" />
+            <div className="grid size-full place-items-center">
+              <UtensilsCrossed aria-hidden className="size-8 text-primary/40" />
+            </div>
+          )}
+
+          {merchant.rating_count > 0 && (
+            <span className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-pill bg-card/95 px-2 py-1 text-xs font-bold shadow-card backdrop-blur-sm">
+              <Star aria-hidden className="size-3 fill-current text-primary" />
+              {Number(merchant.rating_avg).toFixed(1)}
+            </span>
+          )}
+
+          {!merchant.is_open && (
+            <span className="absolute bottom-2.5 left-2.5 rounded-pill bg-card/95 px-2.5 py-1 text-xs font-bold text-fg-muted shadow-card backdrop-blur-sm">
+              Closed
+            </span>
           )}
         </div>
 
         <div className="p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate font-bold">{merchant.name}</h3>
-            {merchant.rating_count > 0 && (
-              <span className="flex shrink-0 items-center gap-1 text-sm font-semibold">
-                <Star aria-hidden className="size-3.5 fill-current text-primary" />
-                {Number(merchant.rating_avg).toFixed(1)}
-              </span>
-            )}
-          </div>
+          <h3 className="truncate font-bold">{merchant.name}</h3>
 
           {merchant.tagline && (
             <p className="mt-0.5 truncate text-sm text-fg-muted">{merchant.tagline}</p>
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Pill tone={merchant.is_open ? "success" : "neutral"} showDot={false}>
+            <Pill tone="neutral" showDot={false}>
               <Clock aria-hidden className="size-3" />
               {merchant.prep_time_minutes} min
             </Pill>

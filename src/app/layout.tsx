@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Poppins } from "next/font/google";
+import { SplashScreen } from "@/components/splash-screen";
 import "./globals.css";
 
 /**
- * Plus Jakarta Sans is a geometric sans in the same family of shapes as the
- * logo wordmark, so headings sit next to the mark without a visible seam.
- * `display: swap` because a delivery app is often opened on a weak connection
- * and invisible text is worse than a font swap.
+ * Poppins - the geometric, rounded sans most food-delivery apps in this
+ * category lean on. `display: swap` because a delivery app is often opened
+ * on a weak connection and invisible text is worse than a font swap.
  */
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   applicationName: "FoodDash",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "FoodDash", statusBarStyle: "default" },
-  icons: { icon: "/brand/fooddash-mark.svg", apple: "/brand/fooddash-mark.svg" },
+  icons: { icon: "/brand/fooddash-mark.png", apple: "/brand/fooddash-mark.png" },
 };
 
 export const viewport: Viewport = {
@@ -34,22 +34,22 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFD9C9" },
-    { media: "(prefers-color-scheme: dark)", color: "#121212" },
-  ],
+  // The app is pinned to light mode (data-theme="light" below), so the
+  // browser chrome should match rather than follow the OS into dark.
+  themeColor: "#FFD9C9",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-PH" suppressHydrationWarning>
-      <body className={`${jakarta.variable} antialiased`}>
+    <html lang="en-PH" data-theme="light" suppressHydrationWarning>
+      <body className={`${poppins.variable} antialiased`}>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-fg focus:font-semibold"
         >
           Skip to content
         </a>
+        <SplashScreen />
         {children}
       </body>
     </html>

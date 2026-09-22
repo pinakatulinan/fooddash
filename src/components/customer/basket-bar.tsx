@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import { formatCentavos } from "@/lib/format";
 
 interface Summary {
@@ -111,25 +112,45 @@ export function BasketBar() {
     };
   }, [load]);
 
+  // Keeps showing the last real numbers while sliding out, rather than the
+  // content going blank a beat before the bar itself finishes disappearing.
+  // Adjusted during render rather than in an effect - see CartItemQuantity
+  // for the same pattern and why.
+  const [lastSummary, setLastSummary] = React.useState<Summary | null>(null);
+  if (summary && summary !== lastSummary) {
+    setLastSummary(summary);
+  }
+
   // Redundant on the page that already is the basket.
   const onCartFlow = pathname?.startsWith("/cart") || pathname?.startsWith("/checkout");
-  if (onCartFlow || !summary) return null;
+  const visible = !onCartFlow && !!summary;
+  const display = summary ?? lastSummary;
 
   return (
-    <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 md:bottom-6">
-      <Link
-        href="/cart"
-        className="flex w-full max-w-md items-center gap-3 rounded-pill bg-header px-4 py-3 text-header-fg shadow-lg transition-transform active:scale-[0.98]"
-      >
-        <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-pill bg-white/15">
-          <ShoppingBag className="size-4" />
-        </span>
-        <span className="min-w-0 flex-1 text-sm font-bold">
-          Basket · {summary.itemCount} {summary.itemCount === 1 ? "item" : "items"}
-        </span>
-        <span className="shrink-0 text-sm font-bold tabular-nums">{formatCentavos(summary.subtotalCentavos)}</span>
-        <ChevronRight aria-hidden className="size-4 shrink-0 opacity-70" />
-      </Link>
+    <div
+      aria-hidden={!visible}
+      className={cn(
+        "fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 md:bottom-6",
+        "transition-[transform,opacity] duration-300 ease-out",
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
+      )}
+    >
+      {display && (
+        <Link
+          href="/cart"
+          tabIndex={visible ? undefined : -1}
+          className="flex w-full max-w-md items-center gap-3 rounded-pill bg-header px-4 py-3 text-header-fg shadow-lg transition-transform active:scale-[0.98]"
+        >
+          <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-pill bg-white/15">
+            <ShoppingBag className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1 text-sm font-bold">
+            Basket · {display.itemCount} {display.itemCount === 1 ? "item" : "items"}
+          </span>
+          <span className="shrink-0 text-sm font-bold tabular-nums">{formatCentavos(display.subtotalCentavos)}</span>
+          <ChevronRight aria-hidden className="size-4 shrink-0 opacity-70" />
+        </Link>
+      )}
     </div>
   );
 }

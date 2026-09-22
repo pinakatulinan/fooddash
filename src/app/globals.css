@@ -52,8 +52,11 @@
   --header-fg:       var(--coral-text);
   --fg:              var(--ink);
   --fg-muted:        var(--muted);
-  --primary:         var(--coral-deep);
-  --primary-hover:   var(--coral-deep-hover);
+  /* coral-deep-hover, not coral-deep: white text on #D85A30 measures 3.87:1,
+     short of AA for normal-size labels. #C24F29 clears it outright (4.73:1)
+     and is visually near-identical - see docs/DESIGN.md's "open item". */
+  --primary:         var(--coral-deep-hover);
+  --primary-hover:   var(--coral-deep-active);
   --primary-fg:      var(--white);
   --accent:          var(--mint-pastel);
   --accent-fg:       var(--teal-text);
@@ -177,7 +180,7 @@
   --shadow-card: var(--shadow-card);
   --shadow-pop:  var(--shadow-pop);
 
-  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, -apple-system,
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, -apple-system,
                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 

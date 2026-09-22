@@ -66,6 +66,19 @@ export function formatRelative(iso: string | Date | null | undefined): string {
   return rtf.format(deltaSeconds, "second");
 }
 
+/** Today's calendar date in Manila as YYYY-MM-DD, for date inputs' min/max. */
+export function manilaTodayISO(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
+}
+
+/** The latest birthdate that is still 18 or older today (YYYY-MM-DD). */
+export function latestAdultBirthdateISO(): string {
+  const [y, m, d] = manilaTodayISO().split("-");
+  // A Feb 29 today has no Feb 29 eighteen years back.
+  const day = m === "02" && d === "29" ? "28" : d;
+  return `${Number(y) - 18}-${m}-${day}`;
+}
+
 /** Wall-clock time in Manila, regardless of where the viewer is. */
 export function formatManilaTime(iso: string | Date | null | undefined): string {
   if (!iso) return "—";
