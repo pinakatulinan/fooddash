@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { ensureFixtures, placeTestOrder, deleteOrders, merchantClient, adminClient, type Fixtures } from "./fixtures";
+
+const svc: SupabaseClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
 
 let fx: Fixtures;
 const ordersToClean: string[] = [];
@@ -191,5 +196,52 @@ describe("dispatch loop", () => {
     expect(stillOffered).toBe(false);
 
     await admin.rpc("advance_order", { p_order_id: orderId, p_to: "cancelled", p_note: "test cleanup", p_pod_code: null });
+  });
+
+  it("cancelling an order while a rider has a pending, unanswered offer frees that rider (0021)", async () => {
+    const { orderId } = await placeTestOrder(fx);
+    ordersToClean.push(orderId);
+    const merchant = await merchantClient();
+    for (const to of ["accepted", "preparing", "ready_for_pickup"]) {
+      await merchant.rpc("advance_order", { p_order_id: orderId, p_to: to, p_note: null, p_pod_code: null });
+    }
+
+    // current_rider_for_order() only recognises an 'accepted' assignment, so
+    // this has to start from a real online_idle rider, same as the auto
+    // dispatch loop would, for offer_order_to_rider to actually flip them to
+    // 'on_offer' - before 0021, cancelling here left them stuck there.
+    await svc.from("riders").update({ status: "online_idle" }).eq("id", fx.riderUserId);
+
+    const admin = await adminClient();
+    const { error: offerErr } = await admin.rpc("offer_order_to_rider", {
+      p_order_id: orderId,
+      p_rider_id: fx.riderUserId,
+      p_is_auto: false,
+    });
+    expect(offerErr).toBeNull();
+
+    const { data: onOffer } = await svc.from("riders").select("status").eq("id", fx.riderUserId).single();
+    expect(onOffer!.status).toBe("on_offer");
+
+    // Never accepted or declined - the order is cancelled out from under the
+    // still-pending offer.
+    const { error: cancelErr } = await admin.rpc("advance_order", {
+      p_order_id: orderId,
+      p_to: "cancelled",
+      p_note: "test cleanup",
+      p_pod_code: null,
+    });
+    expect(cancelErr).toBeNull();
+
+    const { data: assignment } = await svc
+      .from("delivery_assignments")
+      .select("status")
+      .eq("order_id", orderId)
+      .eq("rider_id", fx.riderUserId)
+      .single();
+    expect(assignment!.status).toBe("cancelled");
+
+    const { data: freed } = await svc.from("riders").select("status").eq("id", fx.riderUserId).single();
+    expect(freed!.status).toBe("online_idle");
   });
 });

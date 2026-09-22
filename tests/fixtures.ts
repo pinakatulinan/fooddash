@@ -64,6 +64,8 @@ export interface Fixtures {
   merchantId: string;
   itemId: string;
   addressId: string;
+  /** Any active service zone - rider applications must name one. */
+  zoneId: string;
 }
 
 let cached: Fixtures | null = null;
@@ -196,7 +198,15 @@ export async function ensureFixtures(): Promise<Fixtures> {
     }
   }
 
-  cached = { customerId, merchantUserId, riderUserId, merchantId, itemId, addressId };
+  const { data: zone, error: zoneError } = await svc
+    .from("service_zones")
+    .select("id")
+    .eq("is_active", true)
+    .limit(1)
+    .single();
+  if (zoneError) throw zoneError;
+
+  cached = { customerId, merchantUserId, riderUserId, merchantId, itemId, addressId, zoneId: zone.id };
   return cached;
 }
 
