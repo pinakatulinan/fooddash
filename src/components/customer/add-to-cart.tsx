@@ -302,6 +302,15 @@ export function AddToCartControl({ item, compact = false }: { item: Item; compac
             </Button>
           </div>
 
+          {/* Disabled alone looked like a dead button: nothing explained why
+              tapping "Add to cart" did nothing when a required group (e.g. a
+              size with no default) was still unanswered. */}
+          {unmet.length > 0 && (
+            <p role="alert" className="text-sm font-medium text-danger">
+              Choose {unmet.map((g) => `"${g.name}"`).join(" and ")} to continue.
+            </p>
+          )}
+
           {error && (
             <p role="alert" className="text-sm text-danger">
               {error}
