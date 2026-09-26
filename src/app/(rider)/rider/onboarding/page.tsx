@@ -40,7 +40,7 @@ export default async function RiderOnboardingPage() {
     supabase
       .from("rider_applications")
       .select(
-        "date_of_birth, address_line1, barangay, city, emergency_contact_name, emergency_contact_phone, payout_method, payout_account_name, payout_account_number",
+        "date_of_birth, address_line1, barangay, city, emergency_contact_name, emergency_contact_phone, payout_method, payout_account_name",
       )
       .eq("rider_id", user.id)
       .maybeSingle(),
@@ -50,6 +50,13 @@ export default async function RiderOnboardingPage() {
       .eq("rider_id", user.id),
     supabase.from("service_zones").select("id, name").eq("is_active", true).order("name"),
   ]);
+
+  // payout_account_number is encrypted at rest (0023) - only fetched once an
+  // application actually exists, since decrypt_rider_payout_account has
+  // nothing to decrypt otherwise.
+  const { data: payoutAccountNumber } = application
+    ? await supabase.rpc("decrypt_rider_payout_account", { p_rider_id: user.id })
+    : { data: null };
 
   if (rider?.is_verified) redirect("/rider");
 
@@ -133,7 +140,7 @@ export default async function RiderOnboardingPage() {
                 emergency_contact_phone: application?.emergency_contact_phone ?? "",
                 payout_method: application?.payout_method ?? "gcash",
                 payout_account_name: application?.payout_account_name ?? "",
-                payout_account_number: application?.payout_account_number ?? "",
+                payout_account_number: payoutAccountNumber ?? "",
               }}
             />
           </div>

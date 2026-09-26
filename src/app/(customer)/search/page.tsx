@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SearchBar } from "@/components/customer/search-bar";
 import { DEFAULT_LOCATION, MerchantGrid } from "@/components/customer/merchant-grid";
 import type { MerchantCard } from "@/lib/types/domain";
 
@@ -42,28 +43,8 @@ export default async function SearchPage({
 
   return (
     <>
-      <section className="bg-header px-4 pt-5 pb-6 text-header-fg">
-        <h1 className="text-2xl font-extrabold tracking-tight">Search</h1>
-        <form action="/search" method="get" className="mt-4 flex gap-2">
-          <label htmlFor="q" className="sr-only">
-            Search for a store or a dish
-          </label>
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={term}
-            placeholder="Try “adobo”, “coffee”, “silog”"
-            className="h-11 min-w-0 flex-1 rounded-md border border-line bg-card px-3.5 text-base text-fg placeholder:text-fg-muted"
-          />
-          <button
-            type="submit"
-            className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 font-semibold text-primary-fg hover:bg-primary-hover"
-          >
-            <Search aria-hidden className="size-4" />
-            Search
-          </button>
-        </form>
+      <section className="bg-header px-4 py-5 text-header-fg">
+        <SearchBar defaultValue={term} />
       </section>
 
       <div className="px-4 py-6">

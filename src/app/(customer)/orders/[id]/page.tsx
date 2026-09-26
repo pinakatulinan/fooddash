@@ -14,9 +14,16 @@ import { RateOrderForm } from "@/components/customer/rate-order-form";
 import { TicketThread } from "@/components/customer/ticket-thread";
 import { ReportProblemPanel } from "@/components/customer/report-problem-panel";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
-import { DELIVERY_TIMELINE, ORDER_STATUS, PICKUP_TIMELINE } from "@/lib/domain/order-status";
-import { formatCentavos, formatManilaTime } from "@/lib/format";
+import { DELIVERY_TIMELINE, isLive, ORDER_STATUS, PICKUP_TIMELINE } from "@/lib/domain/order-status";
+import { formatCentavos, formatManilaDate, formatManilaTime } from "@/lib/format";
 import type { OrderTracking } from "@/lib/types/domain";
+
+/** delivery_address is a free-form jsonb snapshot - only render the parts
+    that were actually filled in, in the order a Filipino address reads. */
+function formatAddress(address: Record<string, string> | null): string {
+  if (!address) return "—";
+  return [address.line1, address.landmark, address.barangay, address.city].filter(Boolean).join(", ");
+}
 
 /**
  * Order tracking.
@@ -44,6 +51,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     .select("id, name_snapshot, quantity, line_total_centavos, order_item_options(name_snapshot)")
     .eq("order_id", id);
 
+  // order_tracking() only returns total_centavos (it is built for the
+  // rider-facing tracking payload, not a receipt) - the fee breakdown is a
+  // plain RLS-scoped read of the same row this page already knows it can see.
+  const { data: amounts } = await supabase
+    .from("orders")
+    .select("subtotal_centavos, delivery_fee_centavos, service_fee_centavos, discount_centavos, tip_centavos")
+    .eq("id", id)
+    .single();
+
   const { user } = await getCurrentUser();
   const { data: existingReview } =
     t.status === "delivered"
@@ -68,7 +84,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     .order("created_at", { ascending: false })
     .order("created_at", { referencedTable: "messages", ascending: true });
 
-  const { data: messages } = t.rider
+  const { data: messages } = isLive(t.status) && t.rider
     ? await supabase
         .from("order_messages")
         .select("id, sender_id, body, created_at")
@@ -84,7 +100,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           ping platform-wide - riders.current_location updates on every one
           (0008's record_rider_ping) - so this only ever watches the one
           rider actually assigned here, and only once there is one. */}
-      {t.rider && <RealtimeRefresh table="riders" filter={`id=eq.${t.rider.rider_id}`} />}
+      {isLive(t.status) && t.rider && <RealtimeRefresh table="riders" filter={`id=eq.${t.rider.rider_id}`} />}
       {(tickets ?? []).map((ticket) => (
         <RealtimeRefresh key={ticket.id} table="support_messages" filter={`ticket_id=eq.${ticket.id}`} />
       ))}
@@ -114,7 +130,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           </Card>
         )}
 
-        {t.type === "delivery" && t.merchant.lat != null && t.merchant.lng != null && (
+        {isLive(t.status) && t.type === "delivery" && t.merchant.lat != null && t.merchant.lng != null && (
           <OrderTrackingMap
             merchant={{ lat: t.merchant.lat, lng: t.merchant.lng, name: t.merchant.name }}
             dropoff={t.dropoff.lat != null && t.dropoff.lng != null ? { lat: t.dropoff.lat, lng: t.dropoff.lng } : null}
@@ -126,7 +142,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           />
         )}
 
-        {t.rider && (
+        {isLive(t.status) && t.rider && (
           <Card>
             <div className="flex items-center gap-4 p-4">
               <span aria-hidden className="grid size-10 place-items-center rounded-pill bg-accent text-accent-fg">
@@ -152,7 +168,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           </Card>
         )}
 
-        {user && t.rider && (
+        {isLive(t.status) && user && t.rider && (
           <OrderChat
             orderId={t.order_id}
             currentUserId={user.id}
@@ -193,6 +209,45 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           </Card>
         </section>
 
+        <section aria-labelledby="order-details">
+          <h2 id="order-details" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+            Order details
+          </h2>
+          <Card>
+            <dl className="divide-y divide-line">
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="text-sm text-fg-muted">Order number</dt>
+                <dd className="font-mono text-sm font-semibold">{t.code}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="text-sm text-fg-muted">Ordered from</dt>
+                <dd className="text-right text-sm font-semibold">{t.merchant.name}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="text-sm text-fg-muted">Ordered on</dt>
+                <dd className="text-right text-sm font-semibold">
+                  {t.placed_at ? `${formatManilaDate(t.placed_at)} · ${formatManilaTime(t.placed_at)}` : "—"}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="shrink-0 text-sm text-fg-muted">
+                  {t.type === "pickup" ? "Pickup at" : "Delivered to"}
+                </dt>
+                <dd className="text-right text-sm font-semibold">
+                  {t.type === "pickup" ? t.merchant.name : formatAddress(t.dropoff.address)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="text-sm text-fg-muted">Payment method</dt>
+                <dd className="text-right text-sm font-semibold">
+                  {t.payment_method === "cod" ? "Cash on delivery" : t.payment_method.toUpperCase()} ·{" "}
+                  {t.payment_status}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+        </section>
+
         <section aria-labelledby="items">
           <h2 id="items" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
             Your order
@@ -215,18 +270,45 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   </span>
                 </li>
               ))}
-              <li className="flex items-center justify-between px-4 py-3">
-                <span className="font-bold">Total</span>
-                <span className="text-lg font-extrabold tabular-nums">
-                  {formatCentavos(t.total_centavos)}
-                </span>
-              </li>
             </ul>
           </Card>
-          <p className="mt-2 text-xs text-fg-muted">
-            Paid by {t.payment_method === "cod" ? "cash on delivery" : t.payment_method.toUpperCase()} ·{" "}
-            {t.payment_status}
-          </p>
+
+          <Card className="mt-3">
+            <dl className="divide-y divide-line">
+              <div className="flex items-center justify-between px-4 py-2.5">
+                <dt className="text-sm text-fg-muted">Subtotal</dt>
+                <dd className="text-sm tabular-nums">{formatCentavos(amounts?.subtotal_centavos ?? 0)}</dd>
+              </div>
+              {t.type === "delivery" && (
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <dt className="text-sm text-fg-muted">Delivery fee</dt>
+                  <dd className="text-sm tabular-nums">{formatCentavos(amounts?.delivery_fee_centavos ?? 0)}</dd>
+                </div>
+              )}
+              <div className="flex items-center justify-between px-4 py-2.5">
+                <dt className="text-sm text-fg-muted">Service fee</dt>
+                <dd className="text-sm tabular-nums">{formatCentavos(amounts?.service_fee_centavos ?? 0)}</dd>
+              </div>
+              {(amounts?.discount_centavos ?? 0) > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <dt className="text-sm text-fg-muted">Discount</dt>
+                  <dd className="text-sm tabular-nums text-accent-fg">
+                    −{formatCentavos(amounts!.discount_centavos)}
+                  </dd>
+                </div>
+              )}
+              {(amounts?.tip_centavos ?? 0) > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <dt className="text-sm text-fg-muted">Rider tip</dt>
+                  <dd className="text-sm tabular-nums">{formatCentavos(amounts!.tip_centavos)}</dd>
+                </div>
+              )}
+              <div className="flex items-center justify-between px-4 py-3">
+                <dt className="font-bold">Total</dt>
+                <dd className="text-lg font-extrabold tabular-nums">{formatCentavos(t.total_centavos)}</dd>
+              </div>
+            </dl>
+          </Card>
         </section>
 
         {t.status === "delivered" &&

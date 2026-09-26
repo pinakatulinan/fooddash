@@ -48,8 +48,12 @@
   --bg:              var(--white);
   --bg-subtle:       var(--surface);
   --card:            var(--white);
-  --header:          var(--coral-pastel);
-  --header-fg:       var(--coral-text);
+  --header:          var(--coral-deep);
+  /* Literal white, not var(--white): --white itself flips to near-black in
+     dark mode (it doubles as "the darkest surface" there), which would turn
+     header text almost invisible on this now much darker coral. The header
+     is meant to read as solid brand colour with white text on either theme. */
+  --header-fg:       #ffffff;
   --fg:              var(--ink);
   --fg-muted:        var(--muted);
   /* coral-deep-hover, not coral-deep: white text on #D85A30 measures 3.87:1,
@@ -253,4 +257,17 @@ body {
   background: var(--surface-raised);
   animation: fd-pulse 1.6s ease-in-out infinite;
   border-radius: var(--radius-sm);
+}
+
+/* A one-shot flash for a row that just appeared - e.g. a new order landing
+   in the merchant queue via realtime. Fades from the mint tint back to
+   transparent rather than looping, so it reads as "this just happened"
+   rather than as a persistent state. */
+@keyframes fd-new-row {
+  0%   { background-color: var(--mint-tint); }
+  100% { background-color: transparent; }
+}
+
+.fd-new-row {
+  animation: fd-new-row 2.2s ease-out forwards;
 }

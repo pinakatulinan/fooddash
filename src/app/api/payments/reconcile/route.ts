@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCheckoutSessionState } from "@/lib/payments/paymongo";
 import { requireReconcileSecret } from "@/lib/env";
+import { timingSafeEqualString } from "@/lib/security";
 
 /**
  * Fallback for confirm_order_payment (0019) when the webhook never fires -
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     console.error("[payments reconcile]", err);
     return NextResponse.json({ error: "not configured" }, { status: 500 });
   }
-  if (secret !== expected) {
+  if (!timingSafeEqualString(secret, expected)) {
     return NextResponse.json({ error: "not_authorised" }, { status: 403 });
   }
 

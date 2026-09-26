@@ -64,16 +64,24 @@ describe("verifyPaymongoSignature", () => {
 
 describe("confirm_order_payment / fail_order_payment access control", () => {
   it("is not reachable through a user session, only the service role", async () => {
+    // Asserted against the exact message, not just "some error" - a random
+    // p_order_id also fails with "order no longer exists" once past the
+    // auth check, which would make a bare not.toBeNull() pass for the wrong
+    // reason. That gap is exactly how confirm_order_payment's real
+    // auth.uid()-is-null bug (0024) went undetected the first time.
     const customer = await customerClient();
     const confirm = await customer.rpc("confirm_order_payment", { p_order_id: crypto.randomUUID(), p_provider_payment_id: "x" });
-    expect(confirm.error).not.toBeNull();
+    expect(confirm.error?.message).toMatch(/not_authorised/i);
 
     const fail = await customer.rpc("fail_order_payment", { p_order_id: crypto.randomUUID(), p_reason: "x" });
-    expect(fail.error).not.toBeNull();
+    expect(fail.error?.message).toMatch(/not_authorised/i);
 
     const anon = anonClient();
     const anonConfirm = await anon.rpc("confirm_order_payment", { p_order_id: crypto.randomUUID(), p_provider_payment_id: "x" });
-    expect(anonConfirm.error).not.toBeNull();
+    expect(anonConfirm.error?.message).toMatch(/not_authorised/i);
+
+    const anonFail = await anon.rpc("fail_order_payment", { p_order_id: crypto.randomUUID(), p_reason: "x" });
+    expect(anonFail.error?.message).toMatch(/not_authorised/i);
   });
 });
 

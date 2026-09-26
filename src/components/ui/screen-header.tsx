@@ -16,6 +16,7 @@ export function ScreenHeader({
   backHref,
   actions,
   className,
+  titleClassName,
   children,
 }: {
   title: string;
@@ -23,6 +24,9 @@ export function ScreenHeader({
   backHref?: string;
   actions?: React.ReactNode;
   className?: string;
+  /** Overrides the title's default font-extrabold - e.g. a page that wants
+      a lighter weight without changing every other ScreenHeader in the app. */
+  titleClassName?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -39,7 +43,7 @@ export function ScreenHeader({
             </Link>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-extrabold tracking-tight">{title}</h1>
+            <h1 className={cn("truncate text-xl font-extrabold tracking-tight", titleClassName)}>{title}</h1>
             {subtitle && <p className="mt-0.5 text-sm opacity-80">{subtitle}</p>}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

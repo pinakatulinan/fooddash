@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
+import Link from "next/link";
 import { Bike, Eye, EyeOff, Lock, Mail, Phone, Store, User } from "lucide-react";
 import { signUp, type AuthState } from "../actions";
 import { SwipeButton } from "@/components/ui/swipe-button";
@@ -172,6 +173,18 @@ export function SignupForm() {
           {state.error}
         </p>
       )}
+
+      <p className="text-center text-xs text-fg-muted">
+        By signing up, you agree to FoodDash&apos;s{" "}
+        <Link href="/terms" className="font-semibold text-primary" target="_blank">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="font-semibold text-primary" target="_blank">
+          Privacy Policy
+        </Link>
+        .
+      </p>
 
       <SwipeButton label="Swipe to Sign up" pendingLabel="Creating account…" />
 

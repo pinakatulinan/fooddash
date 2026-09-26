@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/format";
 import { siteUrl } from "@/lib/env";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export interface AuthState {
   error: string | null;
@@ -27,6 +28,14 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
   if (!email || !password) return { error: "Enter your email and password." };
 
+  // Ten tries per fifteen minutes, keyed to the account being guessed at -
+  // generous for a real person fumbling their password, tight enough to
+  // make a credential-stuffing loop pointless.
+  const allowed = await checkRateLimit(`login:${email.toLowerCase()}`, 10, 15 * 60);
+  if (!allowed) {
+    return { error: "Too many attempts. Wait a few minutes and try again." };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -46,6 +55,57 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
     await supabase.auth.signOut();
     return { error: "This account has been suspended. Contact support." };
   }
+
+  const destination = next || HOME_FOR_ROLE[profile?.role ?? "customer"] || "/";
+
+  // A password alone only ever reaches aal1. An account with a verified
+  // authenticator factor (enrolled from /admin/settings) needs a code before
+  // nextLevel and currentLevel agree - an account with no factor at all
+  // already has nextLevel === currentLevel, so this never fires for them.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+    redirect(`/mfa-challenge?next=${encodeURIComponent(destination)}`);
+  }
+
+  revalidatePath("/", "layout");
+  redirect(destination);
+}
+
+/**
+ * The second step for an account with a verified authenticator factor -
+ * reachable only with the aal1 session signIn just established, which is
+ * what listFactors()/challenge() below act on.
+ */
+export async function verifyMfaChallenge(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const code = String(formData.get("code") ?? "").trim();
+  const next = String(formData.get("next") ?? "");
+  if (!code) return { error: "Enter the 6-digit code from your authenticator app." };
+
+  const supabase = await createClient();
+  const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+  const factor = factors?.totp.find((f) => f.status === "verified");
+  if (listError || !factor) {
+    return { error: "No authenticator is set up for this account." };
+  }
+
+  const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
+  if (challengeError) return { error: challengeError.message };
+
+  const { error: verifyError } = await supabase.auth.mfa.verify({
+    factorId: factor.id,
+    challengeId: challenge.id,
+    code,
+  });
+  if (verifyError) {
+    return { error: "That code didn't work. Check your device's clock and try again." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    : { data: null };
 
   revalidatePath("/", "layout");
   redirect(next || HOME_FOR_ROLE[profile?.role ?? "customer"] || "/");
@@ -69,6 +129,13 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   const phone = rawPhone ? normalisePhone(rawPhone) : null;
   if (rawPhone && !phone) {
     return { error: "That does not look like a Philippine mobile number." };
+  }
+
+  // Five tries per hour, keyed to the address being signed up - stops the
+  // same inbox being spammed with confirmation emails from a scripted loop.
+  const allowed = await checkRateLimit(`signup:${email.toLowerCase()}`, 5, 60 * 60);
+  if (!allowed) {
+    return { error: "Too many attempts. Wait a while and try again." };
   }
 
   const supabase = await createClient();
@@ -110,6 +177,19 @@ export async function signOut() {
 export async function requestPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return { error: "Enter your email." };
+
+  // Five tries per hour, keyed to the address - without this, "always say
+  // the same thing" (below) doesn't stop someone from email-bombing a real
+  // account with reset links, only from learning whether it exists.
+  const allowed = await checkRateLimit(`reset:${email.toLowerCase()}`, 5, 60 * 60);
+  if (!allowed) {
+    // Still the same message shape - "too many attempts" for an address
+    // that isn't rate-limited yet would itself leak whether it exists.
+    return {
+      error: null,
+      notice: "If that email has an account, a reset link is on its way. Check your inbox.",
+    };
+  }
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {

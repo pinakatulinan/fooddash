@@ -14,7 +14,13 @@ import type { MerchantCard } from "@/lib/types/domain";
  * the rating rides on top of it as a floating badge rather than competing
  * for space in the text block underneath.
  */
-export function MerchantTile({ merchant, dimmed = false }: { merchant: MerchantCard; dimmed?: boolean }) {
+export function MerchantTile({
+  merchant,
+  dimmed = false,
+}: {
+  merchant: MerchantCard;
+  dimmed?: boolean;
+}) {
   return (
     <Card interactive className={dimmed ? "opacity-70" : undefined}>
       <Link href={`/store/${merchant.slug}`} className="block">
@@ -50,7 +56,9 @@ export function MerchantTile({ merchant, dimmed = false }: { merchant: MerchantC
           <h3 className="truncate font-bold">{merchant.name}</h3>
 
           {merchant.tagline && (
-            <p className="mt-0.5 truncate text-sm text-fg-muted">{merchant.tagline}</p>
+            <p className="mt-0.5 truncate text-sm text-fg-muted">
+              {merchant.tagline}
+            </p>
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -58,7 +66,9 @@ export function MerchantTile({ merchant, dimmed = false }: { merchant: MerchantC
               <Clock aria-hidden className="size-3" />
               {merchant.prep_time_minutes} min
             </Pill>
-            <Pill tone="neutral" showDot={false}>{formatDistance(merchant.distance_m)}</Pill>
+            <Pill tone="neutral" showDot={false}>
+              {formatDistance(merchant.distance_m)}
+            </Pill>
             {merchant.min_order_centavos > 0 && (
               <span className="text-xs text-fg-muted">
                 Min {formatCentavosCompact(merchant.min_order_centavos)}
@@ -83,9 +93,11 @@ export function MerchantGrid({
   if (merchants.length === 0) return null;
 
   return (
-    <section>
+    <section className="rounded-lg border-2 border-line bg-card p-4">
       {heading && (
-        <h2 className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">{heading}</h2>
+        <h2 className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+          {heading}
+        </h2>
       )}
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {merchants.map((m) => (
@@ -99,4 +111,8 @@ export function MerchantGrid({
 }
 
 /** Default map centre until geolocation and the saved-address picker land. */
-export const DEFAULT_LOCATION = { lat: 10.3157, lng: 123.8893, label: "Cebu City" };
+export const DEFAULT_LOCATION = {
+  lat: 10.3157,
+  lng: 123.8893,
+  label: "Cebu City",
+};

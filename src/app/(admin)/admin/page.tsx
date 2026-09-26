@@ -1,4 +1,5 @@
-import { AlertTriangle, Bike, Store, Timer } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, Bike, ShieldAlert, Store, Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
@@ -46,7 +47,7 @@ export default async function AdminLiveOpsPage() {
   const supabase = await createClient();
   const since = stuckBefore();
 
-  const [{ data: live }, { data: stuck }, { count: onlineRiders }, { count: pendingStores }] =
+  const [{ data: live }, { data: stuck }, { count: onlineRiders }, { count: pendingStores }, { data: factors }] =
     await Promise.all([
       supabase
         .from("orders")
@@ -68,10 +69,12 @@ export default async function AdminLiveOpsPage() {
         .from("merchants")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending_review"),
+      supabase.auth.mfa.listFactors(),
     ]);
 
   const liveOrders = (live ?? []) as unknown as OpsOrder[];
   const stuckOrders = (stuck ?? []) as unknown as OpsOrder[];
+  const hasMfa = (factors?.all ?? []).some((f) => f.status === "verified");
 
   return (
     <>
@@ -82,6 +85,16 @@ export default async function AdminLiveOpsPage() {
       <ScreenHeader title="Live ops" subtitle="Everything happening right now" />
 
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-6">
+        {!hasMfa && (
+          <Link
+            href="/admin/settings"
+            className="flex items-center gap-3 rounded-md border border-line bg-warning-tint px-4 py-3 text-sm font-medium text-warning hover:brightness-95"
+          >
+            <ShieldAlert aria-hidden className="size-4 shrink-0" />
+            Two-factor authentication is off for your account. Set it up in Platform settings.
+          </Link>
+        )}
+
         <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Metric icon={<Timer className="size-4" />} label="Live orders" value={liveOrders.length} />
           <Metric

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CookingPot } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, CookingPot, History } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { getCurrentMerchant } from "@/lib/merchant";
@@ -8,13 +9,17 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OrderStatusPill } from "@/components/ui/status-pill";
+import { LinkButton } from "@/components/ui/button";
 import { OrderActions } from "@/components/merchant/order-actions";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
-import { isLive } from "@/lib/domain/order-status";
 import { formatCentavos, formatManilaTime, formatRelative } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Orders" };
+
+const RECENT_COMPLETED_COUNT = 5;
+const LIVE_STATUSES = ["placed", "accepted", "preparing", "ready_for_pickup", "picked_up", "arrived"] as const;
+const TERMINAL_STATUSES = ["delivered", "cancelled", "failed"] as const;
 
 interface Row {
   id: string;
@@ -27,8 +32,18 @@ interface Row {
   delivery_address: { line1?: string; barangay?: string } | null;
 }
 
-export default async function MerchantOrdersPage() {
+const SELECT = "id, code, status, type, total_centavos, placed_at, promised_at, delivery_address";
+
+export default async function MerchantOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   if (!isSupabaseConfigured) return <SetupNotice />;
+
+  const { page: pageParam } = await searchParams;
+  const donePage = Math.max(1, Number(pageParam) || 1);
+  const doneOffset = (donePage - 1) * RECENT_COMPLETED_COUNT;
 
   const merchant = await getCurrentMerchant();
   if (!merchant) {
@@ -45,16 +60,30 @@ export default async function MerchantOrdersPage() {
   }
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("orders")
-    .select("id, code, status, type, total_centavos, placed_at, promised_at, delivery_address")
-    .eq("merchant_id", merchant.id)
-    .order("placed_at", { ascending: false })
-    .limit(100);
 
-  const orders = (data ?? []) as Row[];
-  const live = orders.filter((o) => isLive(o.status));
-  const done = orders.filter((o) => !isLive(o.status));
+  // Two targeted queries instead of one big one filtered client-side: the
+  // live queue is whatever is actually in flight (never large in practice),
+  // and "recent completed" only ever pages through five at a time here - the
+  // full search-and-filter view lives on its own page (orders/history).
+  const [{ data: liveData }, { data: doneData, count: doneCount }] = await Promise.all([
+    supabase
+      .from("orders")
+      .select(SELECT)
+      .eq("merchant_id", merchant.id)
+      .in("status", LIVE_STATUSES)
+      .order("placed_at", { ascending: true }),
+    supabase
+      .from("orders")
+      .select(SELECT, { count: "exact" })
+      .eq("merchant_id", merchant.id)
+      .in("status", TERMINAL_STATUSES)
+      .order("placed_at", { ascending: false, nullsFirst: false })
+      .range(doneOffset, doneOffset + RECENT_COMPLETED_COUNT - 1),
+  ]);
+
+  const live = (liveData ?? []) as Row[];
+  const done = (doneData ?? []) as Row[];
+  const doneTotalPages = Math.max(1, Math.ceil((doneCount ?? 0) / RECENT_COMPLETED_COUNT));
 
   const columns = [
     { key: "code", label: "Order", mono: true },
@@ -82,10 +111,7 @@ export default async function MerchantOrdersPage() {
     <>
       <RealtimeRefresh table="orders" filter={`merchant_id=eq.${merchant.id}`} />
 
-      <ScreenHeader
-        title="Orders"
-        subtitle={`${live.length} in the queue · ${orders.length} in the last 100`}
-      />
+      <ScreenHeader title="Orders" subtitle={`${live.length} in the queue`} />
 
       <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6">
         <section aria-labelledby="live">
@@ -101,10 +127,45 @@ export default async function MerchantOrdersPage() {
         </section>
 
         <section aria-labelledby="history">
-          <h2 id="history" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-            Completed
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="history" className="text-sm font-bold tracking-wide text-fg-muted uppercase">
+              Recently completed
+            </h2>
+            <LinkButton href="/merchant/orders/history" size="sm" variant="secondary">
+              <History aria-hidden className="size-3.5" /> Full history
+            </LinkButton>
+          </div>
           <DataTable columns={columns} rows={done.map(toRow)} empty="No completed orders yet" />
+
+          {done.length > 0 && doneTotalPages > 1 && (
+            <div className="mt-3 flex items-center justify-center gap-1">
+              {donePage > 1 ? (
+                <Link
+                  href={`/merchant/orders?page=${donePage - 1}`}
+                  aria-label="Previous orders"
+                  className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
+                >
+                  <ChevronLeft aria-hidden className="size-4" />
+                </Link>
+              ) : (
+                <span className="size-8" aria-hidden />
+              )}
+              <span className="px-2 text-xs font-medium text-fg-muted">
+                Page {donePage} of {doneTotalPages}
+              </span>
+              {donePage < doneTotalPages ? (
+                <Link
+                  href={`/merchant/orders?page=${donePage + 1}`}
+                  aria-label="Next orders"
+                  className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
+                >
+                  <ChevronRight aria-hidden className="size-4" />
+                </Link>
+              ) : (
+                <span className="size-8" aria-hidden />
+              )}
+            </div>
+          )}
         </section>
       </div>
     </>

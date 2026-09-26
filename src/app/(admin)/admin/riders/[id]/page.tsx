@@ -44,7 +44,13 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
   if (!rider) notFound();
 
   const [{ data: application }, { data: documents }, { data: zone }] = await Promise.all([
-    supabase.from("rider_applications").select("*").eq("rider_id", id).maybeSingle(),
+    supabase
+      .from("rider_applications")
+      .select(
+        "date_of_birth, address_line1, barangay, city, emergency_contact_name, emergency_contact_phone, payout_method, payout_account_name, submitted_at",
+      )
+      .eq("rider_id", id)
+      .maybeSingle(),
     supabase
       .from("rider_documents")
       .select("id, doc_type, storage_path, status, review_note, expires_at, created_at")
@@ -54,6 +60,12 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
       ? supabase.from("service_zones").select("name").eq("id", rider.home_zone_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+
+  // payout_account_number is encrypted at rest (0023) - the plaintext only
+  // ever comes back through this admin-gated RPC, never off the raw column.
+  const { data: payoutAccountNumber } = application
+    ? await supabase.rpc("decrypt_rider_payout_account", { p_rider_id: id })
+    : { data: null };
 
   const who = rider.profiles as unknown as { full_name: string | null; phone: string | null; email: string | null } | null;
   const vehicle = rider.vehicle as VehicleType;
@@ -120,7 +132,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
                 />
                 <Row
                   label="Payout"
-                  value={`${payoutLabel ?? application.payout_method} · ${application.payout_account_name} · ${application.payout_account_number}`}
+                  value={`${payoutLabel ?? application.payout_method} · ${application.payout_account_name} · ${payoutAccountNumber ?? "—"}`}
                 />
                 <Row label="Submitted" value={formatRelative(application.submitted_at)} />
               </dl>

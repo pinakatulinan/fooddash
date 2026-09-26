@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import { Clock, MapPin, ShoppingBag, Star, UtensilsCrossed } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/status-pill";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AddToCartControl } from "@/components/customer/add-to-cart";
+import { StoreHeaderActions } from "@/components/customer/store-header-actions";
 import { formatCentavos, formatCentavosCompact, formatRelative } from "@/lib/format";
 import type { MenuOptionGroup } from "@/lib/types/domain";
 
@@ -40,7 +41,9 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
   if (!merchant) notFound();
 
-  const [{ data: isOpen }, { data: reviews }] = await Promise.all([
+  const { user } = await getCurrentUser();
+
+  const [{ data: isOpen }, { data: reviews }, { data: favorite }] = await Promise.all([
     supabase.rpc("is_merchant_open", { p_merchant_id: merchant.id }),
     // No reviewer name here on purpose - profiles has no cross-user read
     // policy (order_tracking's own comment explains why), and a review does
@@ -52,6 +55,14 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
       .not("comment", "is", null)
       .order("created_at", { ascending: false })
       .limit(10),
+    user
+      ? supabase
+          .from("favorites")
+          .select("id")
+          .eq("customer_id", user.id)
+          .eq("merchant_id", merchant.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   type Item = (typeof merchant.menu_items)[number];
@@ -68,8 +79,16 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
   return (
     <>
-      <header className="bg-header px-4 pt-5 pb-6 text-header-fg">
-        <div className="flex items-start justify-between gap-3">
+      <header className="bg-header px-4 pt-3 pb-6 text-header-fg">
+        <div className="flex justify-end">
+          <StoreHeaderActions
+            merchantId={merchant.id}
+            merchantName={merchant.name}
+            initialFavorited={favorite != null}
+          />
+        </div>
+
+        <div className="mt-2 flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             {merchant.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element

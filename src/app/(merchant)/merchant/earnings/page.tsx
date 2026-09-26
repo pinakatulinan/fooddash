@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Wallet } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, History, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { getCurrentMerchant } from "@/lib/merchant";
@@ -7,12 +8,23 @@ import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { DataTable, StatRow } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LinkButton } from "@/components/ui/button";
 import { formatCentavos, formatManilaDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Earnings" };
 
-export default async function MerchantEarningsPage() {
+const LEDGER_PAGE_SIZE = 5;
+
+export default async function MerchantEarningsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   if (!isSupabaseConfigured) return <SetupNotice />;
+
+  const { page: pageParam } = await searchParams;
+  const ledgerPage = Math.max(1, Number(pageParam) || 1);
+  const ledgerOffset = (ledgerPage - 1) * LEDGER_PAGE_SIZE;
 
   const merchant = await getCurrentMerchant();
   if (!merchant) {
@@ -25,30 +37,39 @@ export default async function MerchantEarningsPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: stats }, { data: ledger }, { data: payouts }] = await Promise.all([
-    supabase.rpc("merchant_stats", { p_merchant_id: merchant.id }),
-    supabase
-      .from("ledger_entries")
-      .select("id, entry_type, amount_centavos, note, created_at, payout_id")
-      .eq("account_type", "merchant")
-      .eq("account_id", merchant.id)
-      .order("created_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("payouts")
-      .select("id, period_start, period_end, net_centavos, status")
-      .eq("payee_type", "merchant")
-      .eq("payee_id", merchant.id)
-      .order("period_end", { ascending: false })
-      .limit(12),
-  ]);
+  const [{ data: stats }, { data: unsettledEntries }, { data: ledger, count: ledgerCount }, { data: payouts }] =
+    await Promise.all([
+      supabase.rpc("merchant_stats", { p_merchant_id: merchant.id }),
+      // The balance card needs every unsettled entry regardless of which
+      // ledger page is showing - kept as its own unpaginated query rather
+      // than derived from whatever five rows happen to be on screen.
+      supabase
+        .from("ledger_entries")
+        .select("amount_centavos")
+        .eq("account_type", "merchant")
+        .eq("account_id", merchant.id)
+        .is("payout_id", null),
+      supabase
+        .from("ledger_entries")
+        .select("id, entry_type, amount_centavos, note, created_at, payout_id", { count: "exact" })
+        .eq("account_type", "merchant")
+        .eq("account_id", merchant.id)
+        .order("created_at", { ascending: false })
+        .range(ledgerOffset, ledgerOffset + LEDGER_PAGE_SIZE - 1),
+      supabase
+        .from("payouts")
+        .select("id, period_start, period_end, net_centavos, status")
+        .eq("payee_type", "merchant")
+        .eq("payee_id", merchant.id)
+        .order("period_end", { ascending: false })
+        .limit(12),
+    ]);
 
   const s = (stats ?? {}) as Record<string, number>;
   const entries = ledger ?? [];
-  // A merchant's balance is simply the sum of their ledger entries.
-  const unsettled = entries
-    .filter((e) => !e.payout_id)
-    .reduce((sum, e) => sum + e.amount_centavos, 0);
+  const ledgerTotalPages = Math.max(1, Math.ceil((ledgerCount ?? 0) / LEDGER_PAGE_SIZE));
+  // A merchant's balance is simply the sum of their unsettled ledger entries.
+  const unsettled = (unsettledEntries ?? []).reduce((sum, e) => sum + e.amount_centavos, 0);
 
   return (
     <>
@@ -65,9 +86,14 @@ export default async function MerchantEarningsPage() {
         />
 
         <section aria-labelledby="ledger">
-          <h2 id="ledger" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-            Ledger
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="ledger" className="text-sm font-bold tracking-wide text-fg-muted uppercase">
+              Ledger
+            </h2>
+            <LinkButton href="/merchant/earnings/ledger" size="sm" variant="secondary">
+              <History aria-hidden className="size-3.5" /> Full ledger
+            </LinkButton>
+          </div>
           <DataTable
             columns={[
               { key: "date", label: "Date", hideOnMobile: true },
@@ -88,6 +114,36 @@ export default async function MerchantEarningsPage() {
             empty="No entries yet"
             emptyDescription="Ledger entries are written the moment an order is delivered."
           />
+
+          {entries.length > 0 && ledgerTotalPages > 1 && (
+            <div className="mt-3 flex items-center justify-center gap-1">
+              {ledgerPage > 1 ? (
+                <Link
+                  href={`/merchant/earnings?page=${ledgerPage - 1}`}
+                  aria-label="Previous entries"
+                  className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
+                >
+                  <ChevronLeft aria-hidden className="size-4" />
+                </Link>
+              ) : (
+                <span className="size-8" aria-hidden />
+              )}
+              <span className="px-2 text-xs font-medium text-fg-muted">
+                Page {ledgerPage} of {ledgerTotalPages}
+              </span>
+              {ledgerPage < ledgerTotalPages ? (
+                <Link
+                  href={`/merchant/earnings?page=${ledgerPage + 1}`}
+                  aria-label="Next entries"
+                  className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
+                >
+                  <ChevronRight aria-hidden className="size-4" />
+                </Link>
+              ) : (
+                <span className="size-8" aria-hidden />
+              )}
+            </div>
+          )}
         </section>
 
         <section aria-labelledby="payouts">

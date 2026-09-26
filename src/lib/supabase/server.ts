@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { requireSupabaseEnv } from "@/lib/env";
@@ -45,7 +46,12 @@ export async function createClient() {
  * trusts it, while getUser revalidates the JWT with the auth server. On the
  * server, the difference is whether a forged cookie gets in.
  */
-export async function getCurrentUser() {
+// Wrapped in React's cache() so a layout and a page that both need the
+// signed-in user during the same request share one call instead of two -
+// this function is not itself request-scoped-safe to memoise forever (it
+// would leak across requests), but cache() only dedupes within a single
+// render pass, which is exactly the lifetime this needs.
+export const getCurrentUser = cache(async function getCurrentUser() {
   const supabase = await createClient();
 
   const {
@@ -61,4 +67,4 @@ export async function getCurrentUser() {
     .single();
 
   return { user, profile };
-}
+});

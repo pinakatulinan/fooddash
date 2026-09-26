@@ -1,10 +1,6 @@
-import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
-import { Logo } from "@/components/brand/logo";
 import { BottomNav } from "@/components/layout/app-nav";
-import { NotificationBell } from "@/components/layout/notification-bell";
+import { CustomerTopBar } from "@/components/layout/customer-top-bar";
 import { BasketBar } from "@/components/customer/basket-bar";
-import { LinkButton } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 
@@ -23,29 +19,7 @@ export default async function CustomerLayout({
 
   return (
     <div className="min-h-dvh bg-bg-subtle">
-      <div className="sticky top-0 z-30 border-b border-line bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-20 max-w-5xl items-center justify-between px-4">
-          <Link href="/" aria-label="FoodDash home">
-            <Logo height={65} />
-          </Link>
-          {user ? (
-            <div className="flex items-center gap-1">
-              <NotificationBell surface="customer" />
-              <Link
-                href="/cart"
-                aria-label="Your cart"
-                className="relative grid size-10 place-items-center rounded-pill hover:bg-surface-raised"
-              >
-                <ShoppingBag aria-hidden className="size-5" />
-              </Link>
-            </div>
-          ) : (
-            <LinkButton href="/login" size="sm" variant="secondary">
-              Sign in
-            </LinkButton>
-          )}
-        </div>
-      </div>
+      <CustomerTopBar user={user} />
 
       {/* pb-20 clears the bottom tab bar on mobile; it is a fixed element and
           would otherwise sit on top of the last card in every list. */}

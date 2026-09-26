@@ -18,7 +18,7 @@ const AREA_ROLES: Record<string, readonly string[]> = {
 };
 
 /** Signed-in routes that any role may use. */
-const AUTHED_PREFIXES = ["/account", "/cart", "/checkout", "/orders", "/reset-password"];
+const AUTHED_PREFIXES = ["/account", "/cart", "/checkout", "/orders", "/reset-password", "/mfa-challenge"];
 
 /** Where each role belongs when they land somewhere they should not be. */
 const HOME_FOR_ROLE: Record<string, string> = {

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createCheckoutSession } from "@/lib/payments/paymongo";
 import { siteUrl } from "@/lib/env";
+import { isSameOrigin } from "@/lib/security";
 import type { PaymentMethod } from "@/lib/types/domain";
 
 /**
@@ -15,6 +16,10 @@ import type { PaymentMethod } from "@/lib/types/domain";
  * and fail_order_payment (via the webhook) do that.
  */
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "not_authorised" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   const orderId = body?.orderId;
   if (typeof orderId !== "string") {

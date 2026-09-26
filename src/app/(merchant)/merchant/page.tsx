@@ -1,15 +1,26 @@
-import { PauseCircle } from "lucide-react";
+import {
+  Banknote,
+  CheckCircle2,
+  ClipboardList,
+  type LucideIcon,
+  Minus,
+  PauseCircle,
+  ShoppingBag,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { OrderStatusPill, Pill } from "@/components/ui/status-pill";
-import { OrderActions } from "@/components/merchant/order-actions";
+import { Pill } from "@/components/ui/status-pill";
 import { CreateStoreForm } from "@/components/merchant/create-store-form";
+import { LiveQueueList } from "@/components/merchant/live-queue-list";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
-import { formatCentavos, formatManilaTime, formatRelative } from "@/lib/format";
+import { formatCentavos } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types/domain";
 
 /**
@@ -60,8 +71,20 @@ export default async function MerchantTodayPage() {
     );
   }
 
-  const [{ data: stats }, { data: liveOrders }] = await Promise.all([
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const [{ data: stats }, { data: prevStats }, { data: liveOrders }] = await Promise.all([
     supabase.rpc("merchant_stats", { p_merchant_id: merchant.id }),
+    // The week before that, same RPC - the only way to tell "quiet week" from
+    // "the number always looks like this". Not a new endpoint: merchant_stats
+    // already takes an arbitrary window, this just asks for a second one.
+    supabase.rpc("merchant_stats", {
+      p_merchant_id: merchant.id,
+      p_from: twoWeeksAgo.toISOString(),
+      p_to: weekAgo.toISOString(),
+    }),
     supabase
       .from("orders")
       .select("id, code, status, total_centavos, placed_at, promised_at, type, delivery_address")
@@ -72,6 +95,7 @@ export default async function MerchantTodayPage() {
 
   const orders = (liveOrders ?? []) as LiveOrder[];
   const summary = (stats ?? {}) as Record<string, number>;
+  const previous = (prevStats ?? {}) as Record<string, number>;
 
   return (
     <>
@@ -101,20 +125,45 @@ export default async function MerchantTodayPage() {
             This week
           </h2>
           <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Orders" value={String(summary.orders_count ?? 0)} />
-            <Stat label="Gross sales" value={formatCentavos(summary.gross_centavos ?? 0)} />
-            <Stat label="Your payout" value={formatCentavos(summary.payout_centavos ?? 0)} />
             <Stat
+              icon={ShoppingBag}
+              chip="coral"
+              label="Orders"
+              value={String(summary.orders_count ?? 0)}
+              trend={trendPct(summary.orders_count, previous.orders_count)}
+            />
+            <Stat
+              icon={Banknote}
+              chip="mint"
+              label="Gross sales"
+              value={formatCentavos(summary.gross_centavos ?? 0)}
+              trend={trendPct(summary.gross_centavos, previous.gross_centavos)}
+            />
+            <Stat
+              icon={Wallet}
+              chip="coral"
+              label="Your payout"
+              value={formatCentavos(summary.payout_centavos ?? 0)}
+              trend={trendPct(summary.payout_centavos, previous.payout_centavos)}
+            />
+            <Stat
+              icon={CheckCircle2}
+              // The number that predicts complaints before customers write them.
+              chip={(summary.acceptance_rate ?? 1) < 0.9 ? "warn" : "mint"}
               label="Acceptance"
               value={`${Math.round((summary.acceptance_rate ?? 0) * 100)}%`}
-              // The number that predicts complaints before customers write them.
               tone={(summary.acceptance_rate ?? 1) < 0.9 ? "warn" : "normal"}
+              trend={trendPoints(summary.acceptance_rate, previous.acceptance_rate)}
             />
           </dl>
         </section>
 
         <section aria-labelledby="queue-heading">
-          <h2 id="queue-heading" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+          <h2
+            id="queue-heading"
+            className="mb-3 flex items-center gap-1.5 text-sm font-bold tracking-wide text-fg-muted uppercase"
+          >
+            <ClipboardList aria-hidden className="size-4" />
             Live queue ({orders.length})
           </h2>
 
@@ -127,38 +176,7 @@ export default async function MerchantTodayPage() {
               />
             </Card>
           ) : (
-            <ul className="space-y-2">
-              {orders.map((order) => (
-                <li key={order.id}>
-                  <Card>
-                    <CardBody className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-bold">{order.code}</span>
-                            <OrderStatusPill status={order.status} audience="merchant" />
-                          </div>
-                          <p className="mt-1 truncate text-sm text-fg-muted">
-                            {order.type === "pickup"
-                              ? "Customer pickup"
-                              : (order.delivery_address?.line1 ?? "Delivery")}
-                          </p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="font-bold">{formatCentavos(order.total_centavos)}</p>
-                          <p className="text-xs text-fg-muted">
-                            {order.promised_at
-                              ? `Due ${formatManilaTime(order.promised_at)}`
-                              : formatRelative(order.placed_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <OrderActions orderId={order.id} status={order.status} type={order.type} />
-                    </CardBody>
-                  </Card>
-                </li>
-              ))}
-            </ul>
+            <LiveQueueList orders={orders} />
           )}
         </section>
       </div>
@@ -166,27 +184,92 @@ export default async function MerchantTodayPage() {
   );
 }
 
+type ChipTone = "coral" | "mint" | "warn";
+
+const CHIP_CLASSES: Record<ChipTone, string> = {
+  coral: "bg-coral-tint text-header-fg",
+  mint: "bg-mint-tint text-accent-fg",
+  warn: "bg-warning-tint text-warning",
+};
+
+interface Trend {
+  dir: "up" | "down" | "flat";
+  label: string;
+}
+
+const TREND_ICON: Record<Trend["dir"], typeof TrendingUp> = {
+  up: TrendingUp,
+  down: TrendingDown,
+  flat: Minus,
+};
+
+/** Green-for-up is a customer-app convention that doesn't hold here - a
+    merchant only cares whether a number moved, not whether "up" is good
+    (more cancellations going up is bad). Direction is neutral grey; the
+    number itself already carries the judgement (e.g. acceptance in warning
+    colour below 90%). */
+const TREND_CLASSES = "text-fg-muted";
+
 function Stat({
+  icon: Icon,
+  chip,
   label,
   value,
   tone = "normal",
+  trend,
 }: {
+  icon: LucideIcon;
+  chip: ChipTone;
   label: string;
   value: string;
   tone?: "normal" | "warn";
+  trend?: Trend | null;
 }) {
+  const TrendIcon = trend ? TREND_ICON[trend.dir] : null;
+
   return (
     <Card>
       <CardBody className="p-4">
-        <dt className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{label}</dt>
-        <dd
-          className={`mt-1.5 text-xl font-extrabold tracking-tight ${
-            tone === "warn" ? "text-warning" : ""
-          }`}
-        >
+        <div className="flex items-start justify-between gap-2">
+          <dt className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{label}</dt>
+          <span
+            aria-hidden
+            className={`grid size-7 shrink-0 place-items-center rounded-pill ${CHIP_CLASSES[chip]}`}
+          >
+            <Icon aria-hidden className="size-3.5" />
+          </span>
+        </div>
+        <dd className={`mt-1.5 text-xl font-extrabold tracking-tight ${tone === "warn" ? "text-warning" : ""}`}>
           {value}
         </dd>
+        {trend && TrendIcon && (
+          <p className={`mt-1 flex items-center gap-1 text-xs font-medium ${TREND_CLASSES}`}>
+            <TrendIcon aria-hidden className="size-3" />
+            {trend.label} vs last week
+          </p>
+        )}
       </CardBody>
     </Card>
   );
+}
+
+/** Relative change vs. the prior 7-day window. `previous` at 0 can't give a
+    percentage, so it's called out as "New" rather than shown as +Infinity%. */
+function trendPct(current: number | undefined, previous: number | undefined): Trend | null {
+  const c = current ?? 0;
+  const p = previous ?? 0;
+  if (p === 0) return c === 0 ? null : { dir: "up", label: "New" };
+  const pct = ((c - p) / p) * 100;
+  if (Math.abs(pct) < 1) return { dir: "flat", label: "steady" };
+  return { dir: pct > 0 ? "up" : "down", label: `${pct > 0 ? "+" : ""}${Math.round(pct)}%` };
+}
+
+/** For a rate like acceptance, a percentage-point delta ("+3pts") reads
+    better than a relative percentage of an already-small number. */
+function trendPoints(current: number | undefined, previous: number | undefined): Trend | null {
+  const c = current ?? 0;
+  const p = previous ?? 0;
+  const pts = Math.round((c - p) * 100);
+  if (pts === 0) return { dir: "flat", label: "steady" };
+  return { dir: pts > 0 ? "up" : "down", label: `${pts > 0 ? "+" : ""}${pts}pts` };
 }

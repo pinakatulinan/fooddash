@@ -31,6 +31,7 @@ export default async function AccountPage() {
         title={profile?.full_name ?? "Your account"}
         subtitle={user?.email ?? undefined}
         actions={profile?.role ? <Pill tone="neutral">{profile.role}</Pill> : undefined}
+        titleClassName="font-bold"
       />
 
       <div className="space-y-8 px-4 py-6">
