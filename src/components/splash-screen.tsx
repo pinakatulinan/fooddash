@@ -61,35 +61,35 @@ export function SplashScreen() {
       }`}
     >
       {/*
-        White, not coral or mint: the animation is a plain MP4 (H.264 has no
-        alpha channel - a transparent video isn't something CSS or a re-encode
-        without ffmpeg can produce here), and it was exported with a white
-        background baked into every frame. Matching the backdrop to that
-        white makes the "box" disappear instead of trying to mask it, and
-        white is also the one colour that does not fight either half of the
-        two-tone wordmark - a coral ground washes out "Dash", a mint one
-        would do the same to "Food".
-
-        The clip is trimmed to just after the dash - the orange D has fully
-        left frame and only its fading trail remains - rather than mid-flight,
-        so the exit fade starts from an already-calm frame instead of one
-        caught mid-motion, which read as the animation freezing.
+        WebM/VP9 with real alpha as the primary source - no more "white
+        background baked into the frame, hope the backdrop matches" trick.
+        The MP4 stays as a fallback source for browsers without VP9-alpha
+        support (older Safari/iOS): the <video> tries each <source> in order
+        and only falls through to the next if the current one fails to
+        decode, so nothing extra has to detect support itself. The backdrop
+        stays white regardless - it's still the one colour that does not
+        fight either half of the two-tone wordmark, coral washes out "Dash"
+        and mint would do the same to "Food" - it's just no longer load-
+        bearing for hiding a box now that the primary clip is actually
+        transparent.
 
         bg-transparent on the element itself: a <video> renders solid black
         until its first frame is actually decoded, so without this there's a
         brief black box visible in the instant between mount and playback
-        starting, even though the clip's own content is white throughout.
+        starting, regardless of which source ends up playing.
       */}
       <video
         className="w-80 max-w-[80vw] bg-transparent"
-        src="/brand/logo-animation.mp4"
         autoPlay
         muted
         playsInline
         preload="auto"
         onEnded={leave}
         onError={leave}
-      />
+      >
+        <source src="/brand/logo-animation-transparent.webm" type="video/webm" />
+        <source src="/brand/logo-animation.mp4" type="video/mp4" />
+      </video>
     </div>
   );
 }
