@@ -74,9 +74,14 @@ export function SplashScreen() {
         left frame and only its fading trail remains - rather than mid-flight,
         so the exit fade starts from an already-calm frame instead of one
         caught mid-motion, which read as the animation freezing.
+
+        bg-transparent on the element itself: a <video> renders solid black
+        until its first frame is actually decoded, so without this there's a
+        brief black box visible in the instant between mount and playback
+        starting, even though the clip's own content is white throughout.
       */}
       <video
-        className="w-80 max-w-[80vw]"
+        className="w-80 max-w-[80vw] bg-transparent"
         src="/brand/logo-animation.mp4"
         autoPlay
         muted
