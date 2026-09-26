@@ -61,35 +61,43 @@ export function SplashScreen() {
       }`}
     >
       {/*
-        WebM/VP9 with real alpha as the primary source - no more "white
-        background baked into the frame, hope the backdrop matches" trick.
-        The MP4 stays as a fallback source for browsers without VP9-alpha
-        support (older Safari/iOS): the <video> tries each <source> in order
-        and only falls through to the next if the current one fails to
-        decode, so nothing extra has to detect support itself. The backdrop
-        stays white regardless - it's still the one colour that does not
-        fight either half of the two-tone wordmark, coral washes out "Dash"
-        and mint would do the same to "Food" - it's just no longer load-
-        bearing for hiding a box now that the primary clip is actually
-        transparent.
+        Back to the plain MP4 only. A WebM/VP9-alpha version was tried here,
+        but alpha support in WebM is a mostly-Chrome feature - tested for
+        real in Messenger's in-app browser (WebKit-based, like a lot of
+        mobile in-app browsers) and it decoded the clip fine but ignored the
+        alpha channel outright, showing the raw colour plane underneath -
+        which export tools fill with a neutral grey in the "invisible" areas,
+        since that colour is only ever meant to be seen through the alpha
+        mask. Rendered without alpha, that fill becomes a visible grey box.
+        Not safe to rely on for an audience that includes in-app browsers.
+
+        So: plain MP4 (H.264 has no alpha channel at all), exported with a
+        white background baked into every frame, and the backdrop below
+        matched to that same white to make the "box" disappear by matching
+        it rather than trying to mask it. White is also the one colour that
+        does not fight either half of the two-tone wordmark - a coral ground
+        washes out "Dash", a mint one would do the same to "Food".
+
+        The clip is trimmed to just after the dash - the orange D has fully
+        left frame and only its fading trail remains - rather than mid-flight,
+        so the exit fade starts from an already-calm frame instead of one
+        caught mid-motion, which read as the animation freezing.
 
         bg-transparent on the element itself: a <video> renders solid black
         until its first frame is actually decoded, so without this there's a
         brief black box visible in the instant between mount and playback
-        starting, regardless of which source ends up playing.
+        starting, even though the clip's own content is white throughout.
       */}
       <video
         className="w-80 max-w-[80vw] bg-transparent"
+        src="/brand/logo-animation.mp4"
         autoPlay
         muted
         playsInline
         preload="auto"
         onEnded={leave}
         onError={leave}
-      >
-        <source src="/brand/logo-animation-transparent.webm" type="video/webm" />
-        <source src="/brand/logo-animation.mp4" type="video/mp4" />
-      </video>
+      />
     </div>
   );
 }
