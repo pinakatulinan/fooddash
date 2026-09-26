@@ -13,7 +13,7 @@ type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>["user"];
 /** Pages with their own coral hero that already carries the page's identity
     and (on "/") its own notification/cart controls - this bar would just be
     redundant chrome stacked above it. */
-const HIDDEN_ON = new Set(["/", "/search", "/orders", "/account", "/favorites", "/cart"]);
+const HIDDEN_ON = new Set(["/", "/search", "/orders", "/account", "/favorites", "/cart", "/checkout"]);
 /** Same idea, but for a dynamic segment ("/store/[slug]") rather than one
     fixed path - matched by prefix instead of exact equality. */
 const HIDDEN_ON_PREFIX = ["/store/"];
@@ -22,10 +22,10 @@ const HIDDEN_ON_PREFIX = ["/store/"];
  * The white top bar for every customer page except the ones matched above.
  * "/" folds the logo away and puts these same notification and cart
  * controls into its own coral hero instead, so they never appear twice;
- * "/search", "/orders", "/account", "/favorites", "/cart" and every
- * "/store/*" page drop them entirely - their own heroes have no room for
- * them (a store page puts a map-pin and a favorite toggle there instead -
- * see StoreHeaderActions).
+ * "/search", "/orders", "/account", "/favorites", "/cart", "/checkout" and
+ * every "/store/*" page drop them entirely - their own heroes have no room
+ * for them (a store page puts a map-pin and a favorite toggle there instead
+ * - see StoreHeaderActions).
  */
 export function CustomerTopBar({ user }: { user: CurrentUser }) {
   const pathname = usePathname();

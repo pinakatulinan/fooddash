@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyCartChanged } from "@/lib/cart-events";
 import { friendlyError, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
@@ -142,6 +143,7 @@ export function AddToCartControl({ item, compact = false }: { item: Item; compac
     setQuantity(1);
     setNotes("");
     router.refresh();
+    notifyCartChanged();
     window.setTimeout(() => setJustAdded(false), 1800);
     if (hasGroups) setExpanded(false);
   }

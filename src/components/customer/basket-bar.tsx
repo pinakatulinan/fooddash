@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 import { cn } from "@/lib/utils";
 import { formatCentavos } from "@/lib/format";
 
@@ -106,8 +107,14 @@ export function BasketBar() {
 
     connect();
 
+    // The direct, same-tab signal - see lib/cart-events.ts for why this
+    // exists alongside the Realtime subscription above rather than instead
+    // of it.
+    window.addEventListener(CART_CHANGED_EVENT, load);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(CART_CHANGED_EVENT, load);
       if (channel) supabase.removeChannel(channel);
     };
   }, [load]);
