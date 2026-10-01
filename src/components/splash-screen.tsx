@@ -5,12 +5,10 @@ import * as React from "react";
 const SESSION_KEY = "fd-splash-shown";
 const FADE_MS = 500;
 const MAX_VISIBLE_MS = 12_000;
-// Sampled directly from the baked-in background of /brand/logo-animation.mp4
-// (averaged across ~1,400 background pixels, first/mid/last frame). It is
-// NOT pure white - #F4F3EF, a warm off-white. Any other value here,
-// including a "looks white" semantic token like bg-card, will show a
-// visible seam around the video's rectangle.
-const SPLASH_BG = "#F4F3EF";
+// Pure white, per explicit request - note this will show a faint seam
+// around the video's rectangle, since logo-animation.mp4's own baked-in
+// background is actually #F4F3EF (a warm off-white), not pure white.
+const SPLASH_BG = "#FFFFFF";
 
 export function SplashScreen() {
   const [phase, setPhase] = React.useState<"hidden" | "visible" | "leaving">(
