@@ -2,11 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Power } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { friendlyError } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Pill } from "@/components/ui/status-pill";
+import { friendlyError, cn } from "@/lib/utils";
 import type { RiderStatus } from "@/lib/types/domain";
 
 /**
@@ -17,6 +14,9 @@ import type { RiderStatus } from "@/lib/types/domain";
  * let a rider go offline mid-delivery. Both rules live in one place, in SQL,
  * where the rider app, the ops console and any future native client all get
  * them for free.
+ *
+ * Only ever rendered on the teal header band of the Jobs page, so this is
+ * styled for a dark background rather than taking a variant prop for one.
  */
 export function AvailabilityToggle({
   initialStatus,
@@ -50,11 +50,10 @@ export function AvailabilityToggle({
 
   if (!isVerified) {
     return (
-      <div className="rounded-md border border-line bg-warning-tint px-4 py-3">
-        <p className="text-sm font-bold text-warning">Verification pending</p>
-        <p className="mt-0.5 text-sm text-fg-muted">
-          You can go online once ops have approved all your documents. Upload anything still
-          missing, then check back here.
+      <div className="rounded-[20px] bg-white/10 px-4 py-3">
+        <p className="text-sm font-bold text-white">Verification pending</p>
+        <p className="mt-0.5 text-xs text-white/75">
+          You can go online once ops have approved all your documents.
         </p>
       </div>
     );
@@ -62,21 +61,40 @@ export function AvailabilityToggle({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-3">
-        <Button
-          variant={online ? "secondary" : "primary"}
-          size="lg"
+      <div className="flex items-center justify-between rounded-[20px] bg-white/10 py-1.5 pr-1.5 pl-4">
+        <span className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className={cn(
+              "size-2.5 rounded-pill ring-4",
+              online ? "bg-[#5CC9AB] ring-[#5cc9ab40]" : "bg-white/40 ring-white/10",
+            )}
+          />
+          <span className="text-[15px] font-bold text-white">{online ? "You're online" : "You're offline"}</span>
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={online}
+          aria-label={online ? "Go offline" : "Go online"}
           onClick={toggle}
-          loading={pending}
-          className="flex-1"
+          disabled={pending}
+          className={cn(
+            "relative h-8.5 w-14.5 shrink-0 rounded-pill transition-colors disabled:opacity-60",
+            online ? "bg-[#5CC9AB]" : "bg-white/20",
+          )}
         >
-          <Power aria-hidden className="size-4" />
-          {online ? "Go offline" : "Go online"}
-        </Button>
-        <Pill tone={online ? "success" : "neutral"}>{online ? "Online" : "Offline"}</Pill>
+          <span
+            aria-hidden
+            className={cn(
+              "absolute top-0.5 size-7.5 rounded-pill bg-white shadow-card transition-transform",
+              online ? "translate-x-6" : "translate-x-0.5",
+            )}
+          />
+        </button>
       </div>
       {error && (
-        <p role="alert" className="rounded-md bg-danger-tint px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white">
           {error}
         </p>
       )}

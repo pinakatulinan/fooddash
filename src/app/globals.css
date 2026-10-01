@@ -44,9 +44,25 @@
   --warning:           #8f5708;
   --warning-tint:      #fdf3e3;
 
+  /* ---- Mobile refresh (design_handoff_fooddash_mobile_refresh) ----
+     Warm-cream ground + white cards, replacing the solid coral header
+     bands. Layered on top of the tokens above rather than replacing them -
+     --coral-text/--warning already are --hero-brown/--star, just aliased
+     under the names the handoff doc uses. */
+  --cream:        #fff6f1;  /* app background for every mobile screen        */
+  --line-warm:    #f0e4dd;  /* borders, dividers, inactive progress segments */
+  --muted-warm:   #6b625e;  /* secondary text - ~5.6:1 on cream, passes AA   */
+  --seg-bg:       #f7efea;  /* segmented-control track, list dividers        */
+  --neutral-chip: #f4f0ee;  /* inactive icon chip fill                       */
+  --hero-brown:   var(--coral-text);  /* discover hero card ground          */
+  --star:         #e0a44a;  /* star rating icon                              */
+
   /* ---- Semantic aliases: what components actually reference ---- */
   --bg:              var(--white);
-  --bg-subtle:       var(--surface);
+  /* Was --surface (near-white grey) - the mobile refresh's warm cream
+     ground for every screen. --surface itself survives unchanged below,
+     still used where an actual grey (not cream) is wanted. */
+  --bg-subtle:       var(--cream);
   --card:            var(--white);
   --header:          var(--coral-deep);
   /* Literal white, not var(--white): --white itself flips to near-black in
@@ -55,7 +71,7 @@
      is meant to read as solid brand colour with white text on either theme. */
   --header-fg:       #ffffff;
   --fg:              var(--ink);
-  --fg-muted:        var(--muted);
+  --fg-muted:        var(--muted-warm);
   /* coral-deep-hover, not coral-deep: white text on #D85A30 measures 3.87:1,
      short of AA for normal-size labels. #C24F29 clears it outright (4.73:1)
      and is visually near-identical - see docs/DESIGN.md's "open item". */
@@ -64,16 +80,25 @@
   --primary-fg:      var(--white);
   --accent:          var(--mint-pastel);
   --accent-fg:       var(--teal-text);
-  --line:            var(--border);
+  --line:            var(--line-warm);
   --ring:            var(--coral-deep);
 
-  --radius-sm: 0.5rem;
-  --radius:    0.875rem;
-  --radius-lg: 1.25rem;
+  --radius-sm: 0.75rem;
+  --radius:    1.25rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
   --radius-pill: 999px;
 
-  --shadow-card: 0 1px 2px rgb(26 26 26 / 0.04), 0 4px 16px rgb(26 26 26 / 0.06);
-  --shadow-pop:  0 8px 32px rgb(26 26 26 / 0.12);
+  /* All warm-tinted (rgb(122 58 31 / a) = --hero-brown), not neutral black -
+     a shadow under a white card on a warm cream ground reads as grey soot
+     at the old neutral tint. --shadow-cta/--shadow-fab use the coral primary
+     itself instead, since those sit under coral surfaces, not white ones. */
+  --shadow-card: 0 4px 14px rgb(122 58 31 / 0.06);
+  --shadow-icon: 0 4px 14px rgb(122 58 31 / 0.08);
+  --shadow-tile: 0 6px 20px rgb(122 58 31 / 0.08);
+  --shadow-pop:  0 10px 30px rgb(122 58 31 / 0.14);
+  --shadow-cta:  0 10px 24px rgb(194 79 41 / 0.30);
+  --shadow-fab:  0 8px 20px rgb(194 79 41 / 0.35);
 }
 
 /* --------------------------------------------------------------------------
@@ -175,14 +200,25 @@
   --color-danger-tint: var(--danger-tint);
   --color-warning:     var(--warning);
   --color-warning-tint: var(--warning-tint);
+  --color-cream:       var(--cream);
+  --color-line-warm:   var(--line-warm);
+  --color-seg:         var(--seg-bg);
+  --color-neutral-chip: var(--neutral-chip);
+  --color-hero-brown:  var(--hero-brown);
+  --color-star:        var(--star);
 
   --radius-sm:   var(--radius-sm);
   --radius-md:   var(--radius);
   --radius-lg:   var(--radius-lg);
+  --radius-xl:   var(--radius-xl);
   --radius-pill: var(--radius-pill);
 
   --shadow-card: var(--shadow-card);
+  --shadow-icon: var(--shadow-icon);
+  --shadow-tile: var(--shadow-tile);
   --shadow-pop:  var(--shadow-pop);
+  --shadow-cta:  var(--shadow-cta);
+  --shadow-fab:  var(--shadow-fab);
 
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, -apple-system,
                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

@@ -26,9 +26,15 @@ interface NotificationRow {
  */
 export function NotificationBell({
   className,
+  buttonClassName,
   surface = "customer",
 }: {
+  /** Applied to the outer (relative-positioned) wrapper - use this for
+      layout (margins, shrink-0), not appearance. */
   className?: string;
+  /** Applied to the bell button itself, merged over (and able to override)
+      its default pill - e.g. Discover's squircle treatment. */
+  buttonClassName?: string;
   /**
    * can_view_order (0009) actually lets a merchant member or an assigned
    * rider load /orders/[id]'s data - but that page is styled and chromed for
@@ -171,7 +177,7 @@ export function NotificationBell({
         type="button"
         onClick={togglePanel}
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-        className="relative grid size-10 place-items-center rounded-pill hover:bg-surface-raised"
+        className={cn("relative grid size-10 place-items-center rounded-pill hover:bg-surface-raised", buttonClassName)}
       >
         <Bell aria-hidden className="size-5" />
         {unreadCount > 0 && (

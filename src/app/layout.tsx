@@ -36,7 +36,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   // The app is pinned to light mode (data-theme="light" below), so the
   // browser chrome should match rather than follow the OS into dark.
-  themeColor: "#FFD9C9",
+  themeColor: "#FFF6F1",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

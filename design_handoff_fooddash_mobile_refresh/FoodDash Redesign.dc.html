@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<style>
+body{margin:0;background:#EFE9E5;font-family:Poppins,system-ui,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased}
+a{color:#C24F29;text-decoration:none}a:hover{color:#A94324}
+.dv-turn{padding:48px 52px 40px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px/1.5 ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px/1.2 Poppins,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:500 12px/1.3 Poppins,sans-serif;color:rgba(0,0,0,.6)}
+.dv-opt:target .dv-oid{background:#C24F29;color:#fff}
+.dv-next{margin:28px 0 0;font:12px/1.5 Poppins,sans-serif;color:rgba(0,0,0,.55)}
+[class^="icon-"],[class*=" icon-"]{line-height:1;display:inline-block}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">FoodDash — refined mobile design</span></div>
+  <div style="max-width:880px;margin:0 0 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 32px;font-size:13px;line-height:1.55;color:#4A4542">
+    <p style="margin:0"><b style="color:#1A1A1A">Same brand, new posture.</b> Coral + mint and Poppins stay. The heavy coral header band is replaced by a warm cream ground (#FFF6F1, from your coral-tint), white rounded cards and soft shadows — the KFC-reference feel.</p>
+    <p style="margin:0"><b style="color:#1A1A1A">Photos lead.</b> Store and dish photos go full-bleed, so the coral is saved for actions: one #C24F29 primary per screen, mint for status. Contrast rules from DESIGN.md still hold.</p>
+    <p style="margin:0"><b style="color:#1A1A1A">Cart in the nav.</b> A raised cart button in the bottom nav replaces the cart icon that only some headers had. Everything else (filters, statuses, fees) matches what your code actually supports today.</p>
+    <p style="margin:0"><b style="color:#1A1A1A">Note:</b> the Modernist design system you attached (red, Archivo, square corners, B&amp;W photos) clashes with "keep coral + mint, Poppins" and the KFC reference, so I followed your brand answer. Say the word and I'll do a Modernist take.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:56px">
+
+  <div>
+    <p style="margin:0 0 18px;font:700 12px/1.5 Poppins;letter-spacing:.08em;text-transform:uppercase;color:#8A6A5C">Before → after · Discover</p>
+    <div class="dv-opts">
+
+      <div class="dv-opt" id="1a">
+        <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Current — recreated from page.tsx + merchant-grid.tsx</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FAFAFA;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="background:#D85A30;color:#fff">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+            <div style="padding:20px 16px 24px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <p style="margin:0;display:flex;align-items:center;gap:6px;font:700 12px/1.5 Poppins;letter-spacing:.03em;text-transform:uppercase;opacity:.8"><i class="icon-map-pin" style="font-size:14px"></i>Delivering to Lahug</p>
+                <div style="display:flex;gap:4px;margin:-6px -6px 0 0;font-size:20px">
+                  <span style="width:40px;height:40px;display:grid;place-items:center"><i class="icon-heart"></i></span>
+                  <span style="width:40px;height:40px;display:grid;place-items:center"><i class="icon-bell"></i></span>
+                  <span style="width:40px;height:40px;display:grid;place-items:center"><i class="icon-shopping-bag"></i></span>
+                </div>
+              </div>
+              <h1 style="margin:8px 0 0;font:700 24px/1.3 Poppins;letter-spacing:-.01em">Where food finds you.</h1>
+              <p style="margin:4px 0 0;font:500 14px/1.5 Poppins;opacity:.8">3 kitchens open near you right now.</p>
+            </div>
+          </div>
+          <div style="padding:16px 16px 0">
+            <div style="height:48px;border-radius:999px;border:2px solid rgba(194,79,41,.4);background:#fff;display:flex;align-items:center;gap:10px;padding:0 16px;box-sizing:border-box;color:#8A8A8A;font-size:16px"><i class="icon-search" style="color:#C24F29;font-size:18px"></i>Search stores or dishes</div>
+          </div>
+          <div style="padding:24px 16px;display:flex;flex-direction:column;gap:32px">
+            <div style="display:flex;gap:8px">
+              <span style="border:1px solid #E2E2E2;background:#fff;border-radius:999px;padding:8px 14px;font:600 14px/1.5 Poppins">Top rated</span>
+              <span style="border:1px solid #E2E2E2;background:#fff;border-radius:999px;padding:8px 14px;font:600 14px/1.5 Poppins">Under 30 min</span>
+              <span style="border:1px solid #E2E2E2;background:#fff;border-radius:999px;padding:8px 14px;font:600 14px/1.5 Poppins">Nearby</span>
+            </div>
+            <div style="border:2px solid #E2E2E2;border-radius:20px;background:#fff;padding:16px;margin-top:-8px">
+              <h2 style="margin:0 0 12px;font:700 14px/1.5 Poppins;letter-spacing:.03em;text-transform:uppercase;color:#8A8A8A">Open now</h2>
+              <div style="border:1px solid #E2E2E2;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(26,26,26,.04),0 4px 16px rgba(26,26,26,.06)">
+                <div style="height:160px;position:relative;background:#FFF1EA"><img src="assets/lola-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><span style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);border-radius:999px;padding:4px 8px;font:700 12px/1.5 Poppins;display:flex;align-items:center;gap:4px"><i class="icon-star" style="color:#C24F29;font-size:12px"></i>4.8</span></div>
+                <div style="padding:16px">
+                  <h3 style="margin:0;font:700 16px/1.5 Poppins">Lola's Lutong Bahay</h3>
+                  <p style="margin:2px 0 0;font-size:14px;color:#8A8A8A">Home-cooked Cebuano classics</p>
+                  <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+                    <span style="background:#F4F4F4;color:#8A8A8A;border-radius:999px;padding:4px 10px;font:600 12px/1.5 Poppins;display:flex;gap:4px;align-items:center"><i class="icon-clock" style="font-size:12px"></i>25 min</span>
+                    <span style="background:#F4F4F4;color:#8A8A8A;border-radius:999px;padding:4px 10px;font:600 12px/1.5 Poppins">1.2 km</span>
+                    <span style="font-size:12px;color:#8A8A8A">Min ₱150</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E2E2E2;display:flex;padding-bottom:20px">
+            <span style="flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#C24F29;font:600 11px/1.5 Poppins"><i class="icon-house" style="font-size:20px"></i>Discover</span>
+            <span style="flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8A8A8A;font:600 11px/1.5 Poppins"><i class="icon-search" style="font-size:20px"></i>Search</span>
+            <span style="flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8A8A8A;font:600 11px/1.5 Poppins"><i class="icon-receipt" style="font-size:20px"></i>Orders</span>
+            <span style="flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8A8A8A;font:600 11px/1.5 Poppins"><i class="icon-user" style="font-size:20px"></i>Account</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="align-self:center;font-size:32px;color:#C24F29"><i class="icon-arrow-right"></i></div>
+
+      <div class="dv-opt" id="1b">
+        <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Refined Discover</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:14px 20px 0;display:flex;align-items:center;gap:12px">
+            <div style="flex:1;min-width:0">
+              <p style="margin:0;font:500 12px/1.5 Poppins;color:#7A6A63">Delivering to</p>
+              <p style="margin:2px 0 0;display:flex;align-items:center;gap:4px;font:700 16px/1.5 Poppins"><i class="icon-map-pin" style="color:#C24F29;font-size:16px"></i>Home · Lahug<i class="icon-chevron-down" style="font-size:16px;color:#7A6A63"></i></p>
+            </div>
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px"><i class="icon-heart"></i></span>
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px;position:relative"><i class="icon-bell"></i><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:#C24F29;border:2px solid #fff"></span></span>
+          </div>
+          <div style="padding:16px 20px 0;display:flex;gap:10px">
+            <div style="flex:1;height:50px;border-radius:16px;background:#fff;display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 4px 14px rgba(122,58,31,.06);color:#7A6A63;font-size:15px"><i class="icon-search" style="font-size:19px;color:#1A1A1A"></i>Search stores or dishes</div>
+          </div>
+          <div style="margin:18px 20px 0;height:178px;border-radius:24px;overflow:hidden;position:relative;background:#7A3A1F">
+            <img src="assets/nena-cover.jpg" alt="" style="position:absolute;right:0;top:0;width:62%;height:100%;object-fit:cover">
+            <div style="position:absolute;inset:0;background:linear-gradient(90deg,#7A3A1F 38%,rgba(122,58,31,0) 70%)"></div>
+            <div style="position:relative;padding:20px;color:#fff;max-width:200px">
+              <p style="margin:0;font:600 11px/1.5 Poppins;letter-spacing:.08em;text-transform:uppercase;color:#FFD9C9">3 kitchens open now</p>
+              <h2 style="margin:6px 0 0;font:800 25px/1.08 Poppins;letter-spacing:-.02em">Where food finds you.</h2>
+              <span style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:#fff;color:#7A3A1F;border-radius:999px;padding:8px 8px 8px 16px;font:700 13px/1.5 Poppins">Order now<span style="width:22px;height:22px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:13px"><i class="icon-arrow-right"></i></span></span>
+            </div>
+          </div>
+          <div style="padding:20px 20px 0;display:flex;gap:14px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:66px">
+              <span style="width:60px;height:60px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:24px;box-shadow:0 6px 16px rgba(194,79,41,.3)"><i class="icon-utensils-crossed"></i></span>
+              <span style="font:700 12px/1.5 Poppins;color:#C24F29">All</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:66px">
+              <span style="width:60px;height:60px;border-radius:50%;background:#fff;color:#C24F29;display:grid;place-items:center;font-size:24px;box-shadow:0 4px 14px rgba(122,58,31,.08)"><i class="icon-star"></i></span>
+              <span style="font:500 12px/1.5 Poppins">Top rated</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:66px">
+              <span style="width:60px;height:60px;border-radius:50%;background:#fff;color:#C24F29;display:grid;place-items:center;font-size:24px;box-shadow:0 4px 14px rgba(122,58,31,.08)"><i class="icon-timer"></i></span>
+              <span style="font:500 12px/1.5 Poppins;white-space:nowrap">Under 30m</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:66px">
+              <span style="width:60px;height:60px;border-radius:50%;background:#fff;color:#C24F29;display:grid;place-items:center;font-size:24px;box-shadow:0 4px 14px rgba(122,58,31,.08)"><i class="icon-navigation"></i></span>
+              <span style="font:500 12px/1.5 Poppins">Nearby</span>
+            </div>
+          </div>
+          <div style="padding:22px 20px 12px;display:flex;justify-content:space-between;align-items:baseline">
+            <h3 style="margin:0;font:700 18px/1.5 Poppins">Open now</h3>
+            <span style="font:600 13px/1.5 Poppins;color:#C24F29;display:flex;align-items:center;gap:4px">See all<i class="icon-arrow-right" style="font-size:14px"></i></span>
+          </div>
+          <div style="display:flex;gap:14px;padding:0 20px">
+            <div style="flex:none;width:232px;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+              <div style="height:118px;position:relative"><img src="assets/lola-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><span style="position:absolute;top:10px;left:10px;background:#CFF0E8;color:#1F5F4F;border-radius:999px;padding:3px 10px;font:700 11px/1.5 Poppins">Top rated</span><span style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:16px"><i class="icon-heart"></i></span></div>
+              <div style="padding:12px 14px 14px">
+                <p style="margin:0;font:700 15px/1.5 Poppins">Lola's Lutong Bahay</p>
+                <div style="margin-top:6px;display:flex;gap:10px;font:500 12px/1.5 Poppins;color:#5E5450"><span style="display:flex;gap:4px;align-items:center"><i class="icon-star" style="color:#E0A44A"></i>4.8</span><span style="display:flex;gap:4px;align-items:center"><i class="icon-clock"></i>25 min</span><span>1.2 km</span></div>
+              </div>
+            </div>
+            <div style="flex:none;width:232px;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+              <div style="height:118px"><img src="assets/kape-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+              <div style="padding:12px 14px 14px"><p style="margin:0;font:700 15px/1.5 Poppins">Kape't Kwento</p></div>
+            </div>
+          </div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:68px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(122,58,31,.14);display:flex;align-items:center;padding:0 6px">
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#C24F29;font:600 11px/1.5 Poppins"><i class="icon-house" style="font-size:22px"></i>Discover</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-search" style="font-size:22px"></i>Search</span>
+            <span style="flex:1;display:flex;justify-content:center"><span style="width:62px;height:62px;margin-top:-34px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:24px;border:5px solid #FFF6F1;box-shadow:0 8px 20px rgba(194,79,41,.35);position:relative"><i class="icon-shopping-bag"></i><span style="position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:#1F5F4F;color:#fff;font:700 11px/20px Poppins;text-align:center">2</span></span></span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-receipt" style="font-size:22px"></i>Orders</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-user" style="font-size:22px"></i>Account</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div>
+    <p style="margin:0 0 18px;font:700 12px/1.5 Poppins;letter-spacing:.08em;text-transform:uppercase;color:#8A6A5C">Customer · sign in → order</p>
+    <div class="dv-opts">
+
+      <div class="dv-opt" id="1c">
+        <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Log in</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <img src="assets/auth-hero.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:330px;object-fit:cover;object-position:top">
+          <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="position:relative;display:grid;place-items:center;padding-top:60px"><span style="width:104px;height:104px;border-radius:30px;background:#fff;display:grid;place-items:center;box-shadow:0 12px 30px rgba(122,58,31,.18)"><img src="assets/fooddash-mark.png" alt="FoodDash" style="width:80px;height:80px;object-fit:contain"></span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;top:268px;background:#fff;border-radius:32px 32px 0 0;padding:28px 24px;box-shadow:0 -10px 30px rgba(122,58,31,.08)">
+            <h1 style="margin:0;font:800 26px/1.15 Poppins;letter-spacing:-.02em">Welcome back</h1>
+            <p style="margin:4px 0 0;font-size:14px;color:#6B625E">Log in to order from kitchens near you.</p>
+            <div style="margin-top:20px;display:flex;background:#F7EFEA;border-radius:16px;padding:4px">
+              <span style="flex:1;text-align:center;padding:10px;border-radius:12px;background:#fff;font:700 14px/1.5 Poppins;box-shadow:0 2px 8px rgba(122,58,31,.1)">Log In</span>
+              <span style="flex:1;text-align:center;padding:10px;font:600 14px/1.5 Poppins;color:#6B625E">Sign Up</span>
+            </div>
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="height:54px;border-radius:16px;background:#FBF7F5;border:1.5px solid #C24F29;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:16px"><i class="icon-mail" style="font-size:19px;color:#C24F29"></i>maria@gmail.com</div>
+              <div style="height:54px;border-radius:16px;background:#FBF7F5;border:1.5px solid #F0E4DD;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:16px;color:#6B625E"><i class="icon-lock" style="font-size:19px"></i><span style="flex:1;letter-spacing:.2em">••••••••</span><i class="icon-eye" style="font-size:19px"></i></div>
+            </div>
+            <p style="margin:12px 0 0;text-align:right;font:600 13px/1.5 Poppins;color:#C24F29">Forgot password?</p>
+            <div style="margin-top:18px;height:56px;border-radius:18px;background:#C24F29;color:#fff;display:flex;align-items:center;justify-content:center;font:700 16px/1.5 Poppins;box-shadow:0 10px 24px rgba(194,79,41,.3)">Log in</div>
+            <div style="margin:20px 0 14px;display:flex;align-items:center;gap:12px;font-size:12px;color:#6B625E"><span style="flex:1;height:1px;background:#F0E4DD"></span>or continue with<span style="flex:1;height:1px;background:#F0E4DD"></span></div>
+            <div style="display:flex;gap:12px">
+              <span style="flex:1;height:50px;border-radius:16px;border:1.5px solid #F0E4DD;display:flex;align-items:center;justify-content:center;font:600 14px/1.5 Poppins">Google</span>
+              <span style="flex:1;height:50px;border-radius:16px;border:1.5px solid #F0E4DD;display:flex;align-items:center;justify-content:center;font:600 14px/1.5 Poppins">Facebook</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1d">
+        <div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Store + menu</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="position:absolute;top:0;left:0;right:0;height:250px"><img src="assets/lola-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0) 40%)"></div></div>
+          <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins;color:#fff"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="position:relative;display:flex;gap:10px;padding:10px 20px">
+            <span style="width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:20px"><i class="icon-chevron-left"></i></span>
+            <span style="flex:1"></span>
+            <span style="width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:18px"><i class="icon-map-pin"></i></span>
+            <span style="width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:18px;color:#C24F29"><i class="icon-heart"></i></span>
+          </div>
+          <div style="position:absolute;top:180px;left:16px;right:16px;background:#fff;border-radius:24px;padding:18px;box-shadow:0 10px 30px rgba(122,58,31,.12)">
+            <div style="display:flex;gap:12px;align-items:center">
+              <img src="assets/lola-logo.jpg" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;object-position:center">
+              <div style="flex:1;min-width:0">
+                <h1 style="margin:0;font:800 20px/1.2 Poppins;letter-spacing:-.01em">Lola's Lutong Bahay</h1>
+                <p style="margin:2px 0 0;font-size:13px;color:#6B625E">Home-cooked Cebuano classics</p>
+              </div>
+              <span style="background:#CFF0E8;color:#1F5F4F;border-radius:999px;padding:4px 10px;font:700 11px/1.5 Poppins;display:flex;gap:5px;align-items:center"><span style="width:6px;height:6px;border-radius:50%;background:#1F5F4F"></span>Open</span>
+            </div>
+            <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);background:#FFF6F1;border-radius:16px;padding:10px 0;text-align:center">
+              <div><p style="margin:0;font:700 14px/1.5 Poppins;display:flex;justify-content:center;gap:4px;align-items:center"><i class="icon-star" style="color:#E0A44A"></i>4.8</p><p style="margin:0;font-size:11px;color:#6B625E">312 ratings</p></div>
+              <div style="border-left:1px solid #F0E4DD;border-right:1px solid #F0E4DD"><p style="margin:0;font:700 14px/1.5 Poppins">25 min</p><p style="margin:0;font-size:11px;color:#6B625E">prep time</p></div>
+              <div><p style="margin:0;font:700 14px/1.5 Poppins">₱150</p><p style="margin:0;font-size:11px;color:#6B625E">minimum</p></div>
+            </div>
+          </div>
+          <div style="position:absolute;top:378px;left:0;right:0;padding:0 20px">
+            <div style="display:flex;gap:8px">
+              <span style="background:#1A1A1A;color:#fff;border-radius:999px;padding:8px 16px;font:600 13px/1.5 Poppins">Popular</span>
+              <span style="background:#fff;border-radius:999px;padding:8px 16px;font:500 13px/1.5 Poppins">Ulam</span>
+              <span style="background:#fff;border-radius:999px;padding:8px 16px;font:500 13px/1.5 Poppins">Pancit</span>
+              <span style="background:#fff;border-radius:999px;padding:8px 16px;font:500 13px/1.5 Poppins">Drinks</span>
+            </div>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="background:#fff;border-radius:20px;padding:12px;display:flex;gap:12px;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+                <div style="flex:1;min-width:0;padding:4px 0 0 4px">
+                  <span style="background:#FFD9C9;color:#7A3A1F;border-radius:999px;padding:2px 8px;font:700 10px/1.5 Poppins;letter-spacing:.04em;text-transform:uppercase">Popular</span>
+                  <p style="margin:6px 0 0;font:700 15px/1.5 Poppins">Pancit Canton</p>
+                  <p style="margin:2px 0 0;font-size:12px;line-height:1.4;color:#6B625E">Stir-fried noodles, shrimp, pork, calamansi</p>
+                  <p style="margin:8px 0 0;font:800 16px/1.5 Poppins">₱185</p>
+                </div>
+                <div style="position:relative;flex:none"><img src="assets/lola-cover.jpg" alt="" style="width:104px;height:104px;border-radius:16px;object-fit:cover;object-position:52% 80%"><span style="position:absolute;right:-4px;bottom:-4px;width:36px;height:36px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:20px;border:3px solid #fff"><i class="icon-plus"></i></span></div>
+              </div>
+              <div style="background:#fff;border-radius:20px;padding:12px;display:flex;gap:12px;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+                <div style="flex:1;min-width:0;padding:4px 0 0 4px">
+                  <p style="margin:0;font:700 15px/1.5 Poppins">Lumpiang Shanghai</p>
+                  <p style="margin:2px 0 0;font-size:12px;line-height:1.4;color:#6B625E">10 pcs, sweet-chili dip</p>
+                  <p style="margin:8px 0 0;font:800 16px/1.5 Poppins">₱120</p>
+                </div>
+                <div style="position:relative;flex:none"><img src="assets/lola-cover.jpg" alt="" style="width:104px;height:104px;border-radius:16px;object-fit:cover;object-position:95% 0%"><span style="position:absolute;right:-4px;bottom:-4px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 4px;border:1.5px solid #F0E4DD;font:700 14px/1.5 Poppins"><span style="width:26px;height:26px;border-radius:50%;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:14px"><i class="icon-minus"></i></span>1<span style="width:26px;height:26px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:14px"><i class="icon-plus"></i></span></span></div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:62px;background:#1A1A1A;color:#fff;border-radius:22px;display:flex;align-items:center;padding:0 8px 0 18px;gap:12px;box-shadow:0 12px 30px rgba(26,26,26,.25)">
+            <span style="width:30px;height:30px;border-radius:10px;background:#C24F29;display:grid;place-items:center;font:700 13px/1.5 Poppins">2</span>
+            <span style="flex:1;font:600 14px/1.5 Poppins">View cart</span>
+            <span style="background:#C24F29;border-radius:16px;padding:12px 16px;font:700 15px/1.5 Poppins">₱305</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1e">
+        <div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Cart</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:12px 20px;display:flex;align-items:center;gap:12px">
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px"><i class="icon-chevron-left"></i></span>
+            <div style="flex:1"><h1 style="margin:0;font:800 22px/1.5 Poppins;letter-spacing:-.01em">Your cart</h1><p style="margin:0;font-size:13px;color:#6B625E">From Lola's Lutong Bahay</p></div>
+          </div>
+          <div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="background:#fff;border-radius:20px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <img src="assets/lola-cover.jpg" alt="" style="width:72px;height:72px;border-radius:14px;object-fit:cover;object-position:52% 80%">
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 15px/1.5 Poppins">Pancit Canton</p><p style="margin:2px 0 0;font-size:12px;color:#6B625E">Size: Family +₱80</p><p style="margin:6px 0 0;font:800 15px/1.5 Poppins">₱265</p></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;background:#FFF6F1;border-radius:14px;padding:4px"><span style="width:28px;height:28px;border-radius:10px;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:14px"><i class="icon-plus"></i></span><span style="font:700 14px/1.5 Poppins">1</span><span style="width:28px;height:28px;border-radius:10px;background:#fff;color:#6B625E;display:grid;place-items:center;font-size:14px"><i class="icon-trash-2"></i></span></div>
+            </div>
+            <div style="background:#fff;border-radius:20px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <img src="assets/lola-cover.jpg" alt="" style="width:72px;height:72px;border-radius:14px;object-fit:cover;object-position:95% 0%">
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 15px/1.5 Poppins">Lumpiang Shanghai</p><p style="margin:2px 0 0;font-size:12px;color:#6B625E;font-style:italic">“Extra dip please”</p><p style="margin:6px 0 0;font:800 15px/1.5 Poppins">₱240</p></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;background:#FFF6F1;border-radius:14px;padding:4px"><span style="width:28px;height:28px;border-radius:10px;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:14px"><i class="icon-plus"></i></span><span style="font:700 14px/1.5 Poppins">2</span><span style="width:28px;height:28px;border-radius:10px;background:#fff;color:#6B625E;display:grid;place-items:center;font-size:14px"><i class="icon-minus"></i></span></div>
+            </div>
+            <span style="align-self:flex-start;display:flex;align-items:center;gap:6px;font:600 13px/1.5 Poppins;color:#C24F29;padding:4px 4px"><i class="icon-plus"></i>Add more items</span>
+            <div style="background:#fff;border-radius:20px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <span style="width:40px;height:40px;border-radius:12px;background:#CFF0E8;color:#1F5F4F;display:grid;place-items:center;font-size:18px"><i class="icon-map-pin"></i></span>
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 14px/1.5 Poppins">Home</p><p style="margin:0;font-size:12px;color:#6B625E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">12 Gorordo Ave, Lahug, Cebu City</p></div>
+              <i class="icon-chevron-right" style="color:#6B625E;font-size:18px"></i>
+            </div>
+            <div style="background:#fff;border-radius:20px;padding:6px 16px;box-shadow:0 4px 14px rgba(122,58,31,.06);font-size:14px">
+              <div style="display:flex;justify-content:space-between;padding:10px 0;color:#6B625E"><span>Subtotal</span><span style="color:#1A1A1A;font-weight:600">₱505.00</span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 0;color:#6B625E;border-top:1px dashed #F0E4DD"><span>Delivery (1.2 km)</span><span style="color:#1A1A1A;font-weight:600">₱49.00</span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 0;color:#6B625E;border-top:1px dashed #F0E4DD"><span>Service fee</span><span style="color:#1A1A1A;font-weight:600">₱10.00</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-top:1px solid #F0E4DD"><span style="font:700 15px/1.5 Poppins">Total</span><span style="font:800 20px/1.5 Poppins">₱564.00</span></div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;padding:16px 20px 30px;box-shadow:0 -8px 24px rgba(122,58,31,.08)">
+            <div style="height:58px;border-radius:18px;background:#C24F29;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font:700 16px/1.5 Poppins;box-shadow:0 10px 24px rgba(194,79,41,.3)"><span>Checkout</span><span style="display:flex;align-items:center;gap:8px">₱564.00<i class="icon-arrow-right"></i></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1f">
+        <div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Checkout</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:12px 20px;display:flex;align-items:center;gap:12px">
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px"><i class="icon-chevron-left"></i></span>
+            <div style="flex:1"><h1 style="margin:0;font:800 22px/1.5 Poppins;letter-spacing:-.01em">Checkout</h1><p style="margin:0;font-size:13px;color:#6B625E">From Lola's Lutong Bahay</p></div>
+          </div>
+          <div style="padding:6px 20px 0;display:flex;flex-direction:column;gap:18px">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><h2 style="margin:0;font:700 15px/1.5 Poppins">Deliver to</h2><span style="font:600 13px/1.5 Poppins;color:#C24F29">+ Add</span></div>
+              <div style="display:flex;gap:10px">
+                <div style="flex:1;background:#fff;border:2px solid #C24F29;border-radius:18px;padding:12px 14px"><p style="margin:0;display:flex;justify-content:space-between;font:700 14px/1.5 Poppins">Home<span style="width:18px;height:18px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:11px"><i class="icon-check"></i></span></p><p style="margin:2px 0 0;font-size:12px;color:#6B625E">12 Gorordo Ave, Lahug</p></div>
+                <div style="flex:1;background:#fff;border:2px solid transparent;border-radius:18px;padding:12px 14px"><p style="margin:0;font:700 14px/1.5 Poppins">Work</p><p style="margin:2px 0 0;font-size:12px;color:#6B625E">IT Park, Apas</p></div>
+              </div>
+            </div>
+            <div>
+              <h2 style="margin:0 0 10px;font:700 15px/1.5 Poppins">Payment</h2>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:#fff;border:2px solid #C24F29;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;font:600 13px/1.5 Poppins"><span style="width:32px;height:32px;border-radius:10px;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:16px"><i class="icon-banknote"></i></span>Cash on delivery</div>
+                <div style="background:#fff;border:2px solid transparent;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;font:600 13px/1.5 Poppins"><span style="width:32px;height:32px;border-radius:10px;background:#F4F0EE;display:grid;place-items:center;font-size:16px"><i class="icon-smartphone"></i></span>GCash</div>
+                <div style="background:#fff;border:2px solid transparent;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;font:600 13px/1.5 Poppins"><span style="width:32px;height:32px;border-radius:10px;background:#F4F0EE;display:grid;place-items:center;font-size:16px"><i class="icon-smartphone"></i></span>Maya</div>
+                <div style="background:#fff;border:2px solid transparent;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;font:600 13px/1.5 Poppins"><span style="width:32px;height:32px;border-radius:10px;background:#F4F0EE;display:grid;place-items:center;font-size:16px"><i class="icon-credit-card"></i></span>Card</div>
+              </div>
+            </div>
+            <div>
+              <h2 style="margin:0 0 10px;font:700 15px/1.5 Poppins">Tip your rider</h2>
+              <div style="display:flex;gap:8px">
+                <span style="flex:1;text-align:center;background:#fff;border-radius:14px;padding:10px 0;font:600 14px/1.5 Poppins">None</span>
+                <span style="flex:1;text-align:center;background:#fff;border-radius:14px;padding:10px 0;font:600 14px/1.5 Poppins">₱20</span>
+                <span style="flex:1;text-align:center;background:#1A1A1A;color:#fff;border-radius:14px;padding:10px 0;font:600 14px/1.5 Poppins">₱30</span>
+                <span style="flex:1;text-align:center;background:#fff;border-radius:14px;padding:10px 0;font:600 14px/1.5 Poppins">₱50</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:16px;height:52px;display:flex;align-items:center;gap:10px;padding:0 6px 0 14px">
+              <i class="icon-ticket" style="color:#C24F29;font-size:19px"></i><span style="flex:1;font:600 14px/1.5 Poppins;letter-spacing:.05em">LAHUG20</span><span style="background:#CFF0E8;color:#1F5F4F;border-radius:12px;padding:8px 12px;font:700 12px/1.5 Poppins">−₱20 applied</span>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;padding:18px 20px 30px;box-shadow:0 -8px 24px rgba(122,58,31,.08)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px"><span style="font-size:13px;color:#6B625E">Total incl. ₱30 tip</span><span style="font:800 22px/1.5 Poppins">₱574.00</span></div>
+            <div style="height:58px;border-radius:18px;background:#C24F29;color:#fff;display:flex;align-items:center;justify-content:center;font:700 16px/1.5 Poppins;box-shadow:0 10px 24px rgba(194,79,41,.3)">Place order</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1g">
+        <div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Order tracking</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="position:absolute;top:0;left:0;right:0;height:430px;background:repeating-linear-gradient(135deg,#F3E8E1 0 12px,#EFE2DA 12px 24px);display:grid;place-items:center"><span style="font:500 11px/1.5 ui-monospace,Menlo,monospace;color:#8A6A5C;background:rgba(255,255,255,.8);padding:6px 10px;border-radius:8px">live map — OrderTrackingMap</span></div>
+          <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="position:relative;padding:10px 20px;display:flex;gap:10px">
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.12);font-size:20px"><i class="icon-chevron-left"></i></span>
+            <span style="flex:1"></span>
+            <span style="height:44px;border-radius:14px;background:#fff;display:flex;align-items:center;padding:0 14px;box-shadow:0 4px 14px rgba(122,58,31,.12);font:600 13px/1.5 ui-monospace,Menlo,monospace">FD-7K2Q</span>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;top:380px;background:#fff;border-radius:32px 32px 0 0;padding:12px 20px 24px;box-shadow:0 -10px 30px rgba(122,58,31,.12)">
+            <div style="width:40px;height:4px;border-radius:2px;background:#F0E4DD;margin:0 auto 16px"></div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div><p style="margin:0;font:600 12px/1.5 Poppins;color:#C24F29;letter-spacing:.04em;text-transform:uppercase">Arriving in</p><p style="margin:0;font:800 34px/1.1 Poppins;letter-spacing:-.02em">12 min</p></div>
+              <span style="background:#FFD9C9;color:#7A3A1F;border-radius:999px;padding:5px 12px;font:700 12px/1.5 Poppins;display:flex;gap:6px;align-items:center;margin-top:6px"><span style="width:6px;height:6px;border-radius:50%;background:#C24F29"></span>On the way</span>
+            </div>
+            <p style="margin:4px 0 0;font-size:14px;color:#6B625E">Your rider is on the way · due 12:42 PM</p>
+            <div style="margin-top:18px;display:flex;align-items:center;gap:4px">
+              <span style="flex:1;height:6px;border-radius:3px;background:#5CC9AB"></span>
+              <span style="flex:1;height:6px;border-radius:3px;background:#5CC9AB"></span>
+              <span style="flex:1;height:6px;border-radius:3px;background:#5CC9AB"></span>
+              <span style="flex:1;height:6px;border-radius:3px;background:#5CC9AB"></span>
+              <span style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,#C24F29 60%,#F0E4DD 60%)"></span>
+              <span style="flex:1;height:6px;border-radius:3px;background:#F0E4DD"></span>
+            </div>
+            <div style="margin-top:8px;display:flex;justify-content:space-between;font:500 11px/16px Poppins;height:16px;color:#6B625E"><span>Placed</span><span>Preparing</span><span style="color:#1A1A1A;font-weight:700">On the way</span><span>Delivered</span></div>
+            <div style="margin-top:20px;background:#FFF6F1;border-radius:20px;padding:14px;display:flex;align-items:center;gap:12px">
+              <span style="width:48px;height:48px;border-radius:50%;background:#CFF0E8;color:#1F5F4F;display:grid;place-items:center;font-size:22px"><i class="icon-bike"></i></span>
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 15px/1.5 Poppins">Jun</p><p style="margin:0;font-size:12px;color:#6B625E">Motorcycle · GAB 4821</p></div>
+              <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:18px"><i class="icon-message-circle"></i></span>
+              <span style="width:44px;height:44px;border-radius:14px;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:18px"><i class="icon-phone"></i></span>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:12px;padding:4px 2px">
+              <img src="assets/lola-logo.jpg" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+              <div style="flex:1"><p style="margin:0;font:600 14px/1.5 Poppins">Lola's Lutong Bahay</p><p style="margin:0;font-size:12px;color:#6B625E">2 items · ₱574.00 · Cash</p></div>
+              <span style="font:600 13px/1.5 Poppins;color:#C24F29">Details</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1h">
+        <div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Orders</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:16px 20px 0"><h1 style="margin:0;font:800 26px/1.5 Poppins;letter-spacing:-.02em">Orders</h1></div>
+          <div style="margin:14px 20px 0;display:flex;background:#F7EFEA;border-radius:16px;padding:4px">
+            <span style="flex:1;text-align:center;padding:10px;border-radius:12px;background:#fff;font:700 14px/1.5 Poppins;box-shadow:0 2px 8px rgba(122,58,31,.1)">Active · 1</span>
+            <span style="flex:1;text-align:center;padding:10px;font:600 14px/1.5 Poppins;color:#6B625E">Past</span>
+          </div>
+          <div style="padding:18px 20px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="background:#1A1A1A;color:#fff;border-radius:22px;padding:16px">
+              <div style="display:flex;gap:12px;align-items:center">
+                <img src="assets/lola-logo.jpg" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">
+                <div style="flex:1"><p style="margin:0;font:700 15px/1.5 Poppins">Lola's Lutong Bahay</p><p style="margin:0;font-size:12px;opacity:.75">FD-7K2Q · 2 items</p></div>
+                <p style="margin:0;font:800 20px/1.5 Poppins">12<span style="font-size:12px;font-weight:600"> min</span></p>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:4px"><span style="flex:4;height:5px;border-radius:3px;background:#5CC9AB"></span><span style="flex:1;height:5px;border-radius:3px;background:#C24F29"></span><span style="flex:1;height:5px;border-radius:3px;background:#3A3A3A"></span></div>
+              <p style="margin:10px 0 0;font:500 13px/1.5 Poppins">Your rider is on the way</p>
+            </div>
+            <p style="margin:10px 0 0;font:700 13px/1.5 Poppins;color:#6B625E">Earlier this week</p>
+            <div style="background:#fff;border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <img src="assets/kape-logo.jpg" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 14px/1.5 Poppins">Kape't Kwento</p><p style="margin:0;font-size:12px;color:#6B625E">Mon, 29 Sep · ₱238.00</p><span style="margin-top:6px;display:inline-flex;gap:5px;align-items:center;background:#CFF0E8;color:#1F5F4F;border-radius:999px;padding:2px 9px;font:700 11px/1.5 Poppins"><span style="width:5px;height:5px;border-radius:50%;background:#1F5F4F"></span>Delivered</span></div>
+              <span style="background:#FFF1EA;color:#C24F29;border-radius:12px;padding:8px 12px;font:700 12px/1.5 Poppins">Reorder</span>
+            </div>
+            <div style="background:#fff;border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <img src="assets/nena-logo.jpg" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 14px/1.5 Poppins">Aling Nena's Carinderia</p><p style="margin:0;font-size:12px;color:#6B625E">Sat, 27 Sep · ₱412.00</p><span style="margin-top:6px;display:inline-flex;gap:5px;align-items:center;background:#CFF0E8;color:#1F5F4F;border-radius:999px;padding:2px 9px;font:700 11px/1.5 Poppins"><span style="width:5px;height:5px;border-radius:50%;background:#1F5F4F"></span>Delivered</span></div>
+              <span style="background:#FFF1EA;color:#C24F29;border-radius:12px;padding:8px 12px;font:700 12px/1.5 Poppins">Reorder</span>
+            </div>
+            <div style="background:#fff;border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(122,58,31,.06)">
+              <img src="assets/lola-logo.jpg" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">
+              <div style="flex:1;min-width:0"><p style="margin:0;font:700 14px/1.5 Poppins">Lola's Lutong Bahay</p><p style="margin:0;font-size:12px;color:#6B625E">Thu, 25 Sep · ₱320.00</p><span style="margin-top:6px;display:inline-flex;gap:5px;align-items:center;background:#FDECEA;color:#B3261E;border-radius:999px;padding:2px 9px;font:700 11px/1.5 Poppins"><span style="width:5px;height:5px;border-radius:50%;background:#B3261E"></span>Cancelled</span></div>
+              <span style="background:#FFF1EA;color:#C24F29;border-radius:12px;padding:8px 12px;font:700 12px/1.5 Poppins">Reorder</span>
+            </div>
+          </div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:68px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(122,58,31,.14);display:flex;align-items:center;padding:0 6px">
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-house" style="font-size:22px"></i>Discover</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-search" style="font-size:22px"></i>Search</span>
+            <span style="flex:1;display:flex;justify-content:center"><span style="width:62px;height:62px;margin-top:-34px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:24px;border:5px solid #FFF6F1;box-shadow:0 8px 20px rgba(194,79,41,.35)"><i class="icon-shopping-bag"></i></span></span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#C24F29;font:600 11px/1.5 Poppins"><i class="icon-receipt" style="font-size:22px"></i>Orders</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-user" style="font-size:22px"></i>Account</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1i">
+        <div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Favorites</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:12px 20px;display:flex;align-items:center;gap:12px">
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px"><i class="icon-chevron-left"></i></span>
+            <div style="flex:1"><h1 style="margin:0;font:800 22px/1.5 Poppins;letter-spacing:-.01em">Favorites</h1><p style="margin:0;font-size:13px;color:#6B625E">3 saved kitchens</p></div>
+          </div>
+          <div style="padding:8px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="grid-column:1 / -1;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+              <div style="height:150px;position:relative"><img src="assets/lola-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><span style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:16px"><i class="icon-heart"></i></span></div>
+              <div style="padding:12px 14px 14px;display:flex;align-items:center;gap:10px">
+                <div style="flex:1"><p style="margin:0;font:700 15px/1.5 Poppins">Lola's Lutong Bahay</p><div style="margin-top:4px;display:flex;gap:10px;font:500 12px/1.5 Poppins;color:#5E5450"><span style="display:flex;gap:4px;align-items:center"><i class="icon-star" style="color:#E0A44A"></i>4.8</span><span>25 min</span><span>1.2 km</span></div></div>
+                <span style="background:#CFF0E8;color:#1F5F4F;border-radius:999px;padding:4px 10px;font:700 11px/1.5 Poppins">Open</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+              <div style="height:110px;position:relative"><img src="assets/kape-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><span style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:14px"><i class="icon-heart"></i></span></div>
+              <div style="padding:10px 12px 12px"><p style="margin:0;font:700 14px/1.5 Poppins">Kape't Kwento</p><p style="margin:2px 0 0;font:500 12px/1.5 Poppins;color:#5E5450">15 min · 0.8 km</p></div>
+            </div>
+            <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+              <div style="height:110px;position:relative"><img src="assets/nena-cover.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1);opacity:.7"><span style="position:absolute;left:8px;bottom:8px;background:rgba(255,255,255,.95);border-radius:999px;padding:3px 9px;font:700 11px/1.5 Poppins;color:#5E5450">Opens 6 AM</span><span style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:14px"><i class="icon-heart"></i></span></div>
+              <div style="padding:10px 12px 12px"><p style="margin:0;font:700 14px/1.5 Poppins">Aling Nena's</p><p style="margin:2px 0 0;font:500 12px/1.5 Poppins;color:#5E5450">30 min · 2.4 km</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1j">
+        <div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Account</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:16px 20px 0"><h1 style="margin:0;font:800 26px/1.5 Poppins;letter-spacing:-.02em">Account</h1></div>
+          <div style="margin:16px 20px 0;background:#fff;border-radius:24px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:0 6px 20px rgba(122,58,31,.08)">
+            <span style="width:60px;height:60px;border-radius:50%;background:#FFD9C9;color:#7A3A1F;display:grid;place-items:center;font:800 22px/1.5 Poppins">MS</span>
+            <div style="flex:1"><p style="margin:0;font:700 17px/1.5 Poppins">Maria Santos</p><p style="margin:2px 0 0;font-size:13px;color:#6B625E">maria@gmail.com</p></div>
+            <i class="icon-chevron-right" style="font-size:20px;color:#6B625E"></i>
+          </div>
+          <div style="margin:12px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:#C24F29;color:#fff;border-radius:20px;padding:14px"><i class="icon-receipt" style="font-size:20px"></i><p style="margin:10px 0 0;font:800 22px/1.5 Poppins">14</p><p style="margin:0;font-size:12px">orders placed</p></div>
+            <div style="background:#CFF0E8;color:#1F5F4F;border-radius:20px;padding:14px"><i class="icon-heart" style="font-size:20px"></i><p style="margin:10px 0 0;font:800 22px/1.5 Poppins">3</p><p style="margin:0;font-size:12px">favorite kitchens</p></div>
+          </div>
+          <div style="margin:16px 20px 0;background:#fff;border-radius:24px;padding:6px 0;box-shadow:0 6px 20px rgba(122,58,31,.06)">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 18px"><span style="width:38px;height:38px;border-radius:12px;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:18px"><i class="icon-map-pin"></i></span><span style="flex:1;font:600 14px/1.5 Poppins">Saved addresses</span><span style="font-size:13px;color:#6B625E">2</span><i class="icon-chevron-right" style="color:#6B625E"></i></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid #F7EFEA"><span style="width:38px;height:38px;border-radius:12px;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:18px"><i class="icon-bell"></i></span><span style="flex:1;font:600 14px/1.5 Poppins">Notifications</span><i class="icon-chevron-right" style="color:#6B625E"></i></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid #F7EFEA"><span style="width:38px;height:38px;border-radius:12px;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:18px"><i class="icon-life-buoy"></i></span><span style="flex:1;font:600 14px/1.5 Poppins">Help &amp; support</span><i class="icon-chevron-right" style="color:#6B625E"></i></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid #F7EFEA"><span style="width:38px;height:38px;border-radius:12px;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:18px"><i class="icon-shield"></i></span><span style="flex:1;font:600 14px/1.5 Poppins">Privacy &amp; terms</span><i class="icon-chevron-right" style="color:#6B625E"></i></div>
+          </div>
+          <div style="margin:12px 20px 0;background:#fff;border-radius:20px;padding:14px 18px;display:flex;align-items:center;gap:14px;color:#B3261E;font:600 14px/1.5 Poppins"><span style="width:38px;height:38px;border-radius:12px;background:#FDECEA;display:grid;place-items:center;font-size:18px"><i class="icon-log-out"></i></span>Sign out</div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:68px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(122,58,31,.14);display:flex;align-items:center;padding:0 6px">
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-house" style="font-size:22px"></i>Discover</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-search" style="font-size:22px"></i>Search</span>
+            <span style="flex:1;display:flex;justify-content:center"><span style="width:62px;height:62px;margin-top:-34px;border-radius:50%;background:#C24F29;color:#fff;display:grid;place-items:center;font-size:24px;border:5px solid #FFF6F1;box-shadow:0 8px 20px rgba(194,79,41,.35)"><i class="icon-shopping-bag"></i></span></span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-receipt" style="font-size:22px"></i>Orders</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#C24F29;font:600 11px/1.5 Poppins"><i class="icon-user" style="font-size:22px"></i>Account</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div>
+    <p style="margin:0 0 18px;font:700 12px/1.5 Poppins;letter-spacing:.08em;text-transform:uppercase;color:#8A6A5C">Partner apps · lighter pass</p>
+    <div class="dv-opts">
+
+      <div class="dv-opt" id="1k">
+        <div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Rider · Jobs</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="background:#1F5F4F;color:#fff;border-radius:0 0 32px 32px;padding-bottom:22px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+            <div style="padding:16px 20px 0;display:flex;align-items:center">
+              <div style="flex:1"><h1 style="margin:0;font:800 24px/1.5 Poppins;letter-spacing:-.01em">Hi, Jun</h1><p style="margin:2px 0 0;font-size:13px;color:#CFF0E8">218 deliveries completed</p></div>
+              <span style="width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:20px"><i class="icon-bell"></i></span>
+            </div>
+            <div style="margin:18px 20px 0;background:rgba(255,255,255,.1);border-radius:20px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px">
+              <span style="width:10px;height:10px;border-radius:50%;background:#5CC9AB;box-shadow:0 0 0 4px rgba(92,201,171,.25)"></span>
+              <span style="flex:1;font:700 15px/1.5 Poppins">You're online</span>
+              <span style="width:58px;height:34px;border-radius:17px;background:#5CC9AB;position:relative"><span style="position:absolute;right:3px;top:3px;width:28px;height:28px;border-radius:50%;background:#fff"></span></span>
+            </div>
+          </div>
+          <div style="padding:18px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:#fff;border-radius:20px;padding:14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font:600 11px/1.5 Poppins;letter-spacing:.05em;text-transform:uppercase;color:#6B625E">Today</p><p style="margin:4px 0 0;font:800 22px/1.5 Poppins">₱640</p><p style="margin:0;font-size:12px;color:#6B625E">8 trips</p></div>
+            <div style="background:#fff;border-radius:20px;padding:14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font:600 11px/1.5 Poppins;letter-spacing:.05em;text-transform:uppercase;color:#6B625E">Cash on hand</p><p style="margin:4px 0 0;font:800 22px/1.5 Poppins">₱1,240</p><p style="margin:0;font-size:12px;color:#8F5708">Remit at the hub</p></div>
+          </div>
+          <p style="margin:22px 20px 10px;font:700 17px/1.5 Poppins">New offer</p>
+          <div style="margin:0 20px;background:#fff;border-radius:24px;padding:18px;box-shadow:0 10px 30px rgba(122,58,31,.12);border:2px solid #C24F29">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div><p style="margin:0;font:700 13px/1.5 ui-monospace,Menlo,monospace">FD-9M3X</p><p style="margin:4px 0 0;font:800 32px/1 Poppins;color:#C24F29">₱85</p><p style="margin:4px 0 0;font-size:12px;color:#6B625E">payout</p></div>
+              <span style="width:56px;height:56px;border-radius:50%;border:4px solid #F0E4DD;border-top-color:#C24F29;border-right-color:#C24F29;display:grid;place-items:center;font:700 14px/1.5 Poppins">0:24</span>
+            </div>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;border-radius:50%;background:#FFF1EA;color:#C24F29;display:grid;place-items:center;font-size:14px"><i class="icon-store"></i></span><span style="flex:1"><b>Lola's Lutong Bahay</b><br><span style="color:#6B625E">0.6 km to the store</span></span></div>
+              <div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;border-radius:50%;background:#CFF0E8;color:#1F5F4F;display:grid;place-items:center;font-size:14px"><i class="icon-banknote"></i></span><span style="flex:1;color:#6B625E">Cash order · collect ₱574</span></div>
+            </div>
+            <div style="margin-top:16px;height:58px;border-radius:29px;background:#C24F29;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font:700 15px/1.5 Poppins"><span style="position:absolute;left:5px;top:5px;width:48px;height:48px;border-radius:50%;background:#fff;color:#C24F29;display:grid;place-items:center;font-size:20px"><i class="icon-chevrons-right"></i></span>Swipe to accept</div>
+            <p style="margin:12px 0 0;text-align:center;font:600 13px/1.5 Poppins;color:#6B625E">Decline</p>
+          </div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:68px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(122,58,31,.14);display:flex;align-items:center">
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#1F5F4F;font:600 11px/1.5 Poppins"><i class="icon-bike" style="font-size:22px"></i>Jobs</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-map" style="font-size:22px"></i>Active</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-wallet" style="font-size:22px"></i>Earnings</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-user" style="font-size:22px"></i>Account</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-opt" id="1l">
+        <div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Merchant · Today</div>
+        <div style="width:390px;height:844px;border-radius:48px;border:10px solid #1A1A1A;overflow:hidden;position:relative;background:#FFF6F1;box-shadow:0 30px 60px rgba(60,30,15,.18)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 26px 4px;font:600 15px/1.5 Poppins"><span>9:41</span><span style="display:flex;gap:6px;font-size:16px"><i class="icon-signal"></i><i class="icon-wifi"></i><i class="icon-battery-full"></i></span></div>
+          <div style="padding:14px 20px 0;display:flex;gap:12px;align-items:center">
+            <img src="assets/lola-logo.jpg" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+            <div style="flex:1;min-width:0"><h1 style="margin:0;font:800 19px/1.5 Poppins">Lola's Lutong Bahay</h1><p style="margin:0;font-size:12px;color:#6B625E">Last 7 days</p></div>
+            <span style="width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(122,58,31,.08);font-size:20px;position:relative"><i class="icon-bell"></i><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:#C24F29;border:2px solid #fff"></span></span>
+          </div>
+          <div style="margin:14px 20px 0;background:#CFF0E8;border-radius:18px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:10px;color:#1F5F4F">
+            <span style="width:8px;height:8px;border-radius:50%;background:#1F5F4F"></span><span style="flex:1;font:700 14px/1.5 Poppins">Accepting orders</span><span style="background:#fff;border-radius:12px;padding:7px 12px;font:700 12px/1.5 Poppins">Pause</span>
+          </div>
+          <div style="margin:14px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font-size:12px;color:#6B625E">Orders</p><p style="margin:2px 0 0;font:800 22px/1.5 Poppins">126</p><p style="margin:0;font-size:11px;color:#6B625E;display:flex;gap:3px;align-items:center"><i class="icon-trending-up"></i>+12% vs last week</p></div>
+            <div style="background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font-size:12px;color:#6B625E">Gross sales</p><p style="margin:2px 0 0;font:800 22px/1.5 Poppins">₱38.4k</p><p style="margin:0;font-size:11px;color:#6B625E;display:flex;gap:3px;align-items:center"><i class="icon-trending-up"></i>+8% vs last week</p></div>
+            <div style="background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font-size:12px;color:#6B625E">Your payout</p><p style="margin:2px 0 0;font:800 22px/1.5 Poppins">₱32.6k</p><p style="margin:0;font-size:11px;color:#6B625E;display:flex;gap:3px;align-items:center"><i class="icon-minus"></i>steady</p></div>
+            <div style="background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 4px 14px rgba(122,58,31,.06)"><p style="margin:0;font-size:12px;color:#6B625E">Acceptance</p><p style="margin:2px 0 0;font:800 22px/1.5 Poppins">97%</p><p style="margin:0;font-size:11px;color:#6B625E;display:flex;gap:3px;align-items:center"><i class="icon-trending-up"></i>+2pts</p></div>
+          </div>
+          <p style="margin:20px 20px 10px;font:700 16px/1.5 Poppins;display:flex;justify-content:space-between">Live queue<span style="color:#C24F29">3</span></p>
+          <div style="padding:0 20px;display:flex;flex-direction:column;gap:10px">
+            <div style="background:#fff;border-radius:20px;padding:14px;box-shadow:0 6px 20px rgba(122,58,31,.1);border-left:0">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font:700 14px/1.5 ui-monospace,Menlo,monospace">FD-9M3X</span><span style="background:#FFD9C9;color:#7A3A1F;border-radius:999px;padding:3px 10px;font:700 11px/1.5 Poppins;display:flex;gap:5px;align-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#C24F29"></span>New order</span></div>
+              <p style="margin:4px 0 0;font-size:12px;color:#6B625E">2 items · ₱574 · Delivery · 1 min ago</p>
+              <div style="margin-top:12px;display:flex;gap:8px"><span style="flex:2;height:44px;border-radius:14px;background:#C24F29;color:#fff;display:grid;place-items:center;font:700 14px/1.5 Poppins">Accept</span><span style="flex:1;height:44px;border-radius:14px;background:#FDECEA;color:#B3261E;display:grid;place-items:center;font:700 14px/1.5 Poppins">Decline</span></div>
+            </div>
+            <div style="background:#fff;border-radius:20px;padding:14px;box-shadow:0 4px 14px rgba(122,58,31,.06);display:flex;align-items:center;gap:10px">
+              <div style="flex:1"><span style="font:700 14px/1.5 ui-monospace,Menlo,monospace">FD-8L1P</span><p style="margin:2px 0 0;font-size:12px;color:#6B625E">Preparing · due 12:35</p></div>
+              <span style="height:40px;border-radius:12px;background:#1A1A1A;color:#fff;display:grid;place-items:center;padding:0 14px;font:700 13px/1.5 Poppins">Mark ready</span>
+            </div>
+          </div>
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;height:68px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(122,58,31,.14);display:flex;align-items:center">
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#C24F29;font:600 11px/1.5 Poppins"><i class="icon-layout-dashboard" style="font-size:21px"></i>Today</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-cooking-pot" style="font-size:21px"></i>Orders</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-clipboard-list" style="font-size:21px"></i>Menu</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-wallet" style="font-size:21px"></i>Earnings</span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#7A6A63;font:500 11px/1.5 Poppins"><i class="icon-settings" style="font-size:21px"></i>Settings</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+  <p class="dv-next">Try next: "make it interactive so I can tap from <a class="dv-oid" href="#1b">1b</a> to <a class="dv-oid" href="#1g">1g</a>" · "explore 2 more Discover heroes" · "do the Rider Active delivery screen"</p>
+</section>
+
+</x-dc>
+</body>
+</html>

@@ -73,9 +73,9 @@ export function LoginForm({ next }: { next: string }) {
       <SwipeButton label="Swipe to Login" pendingLabel="Signing in…" />
 
       <div className="flex items-center gap-3 pt-1">
-        <div className="h-px flex-1 bg-line" />
-        <span className="text-xs font-medium text-fg-muted">Or continue with</span>
-        <div className="h-px flex-1 bg-line" />
+        <div className="h-px flex-1 bg-line-warm" />
+        <span className="text-xs text-fg-muted">or continue with</span>
+        <div className="h-px flex-1 bg-line-warm" />
       </div>
 
       <SocialButtons />

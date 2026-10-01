@@ -50,28 +50,24 @@ export function OfferActions({ assignmentId }: { assignmentId: string }) {
   }
 
   return (
-    <div className="mt-3 space-y-2 border-t border-line pt-3">
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          className="flex-1"
-          loading={pending === "accept"}
-          disabled={pending !== null && pending !== "accept"}
-          onClick={() => respond(true)}
-        >
-          Accept
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          className="flex-1"
-          loading={pending === "decline"}
-          disabled={pending !== null && pending !== "decline"}
-          onClick={() => respond(false)}
-        >
-          Decline
-        </Button>
-      </div>
+    <div className="mt-3.5 space-y-2.5">
+      <Button
+        size="lg"
+        fullWidth
+        loading={pending === "accept"}
+        disabled={pending !== null && pending !== "accept"}
+        onClick={() => respond(true)}
+      >
+        Accept
+      </Button>
+      <button
+        type="button"
+        disabled={pending !== null}
+        onClick={() => respond(false)}
+        className="block w-full text-center text-[13px] font-semibold text-fg-muted disabled:opacity-50"
+      >
+        {pending === "decline" ? "Declining…" : "Decline"}
+      </button>
       {error && (
         <p role="alert" className="text-xs font-medium text-danger">
           {error}

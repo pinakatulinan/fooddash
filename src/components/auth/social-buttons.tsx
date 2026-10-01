@@ -42,7 +42,7 @@ export function SocialButtons() {
           type="button"
           onClick={() => signInWith("google")}
           disabled={loading !== null}
-          className="flex h-12 items-center justify-center gap-2 rounded-lg border border-line bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
+          className="flex h-12.5 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-line-warm bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
         >
           {loading === "google" ? (
             <Loader2 aria-hidden className="size-4.5 animate-spin" />
@@ -55,7 +55,7 @@ export function SocialButtons() {
           type="button"
           onClick={() => signInWith("facebook")}
           disabled={loading !== null}
-          className="flex h-12 items-center justify-center gap-2 rounded-lg border border-line bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
+          className="flex h-12.5 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-line-warm bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
         >
           {loading === "facebook" ? (
             <Loader2 aria-hidden className="size-4.5 animate-spin" />

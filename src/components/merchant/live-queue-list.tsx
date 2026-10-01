@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardBody } from "@/components/ui/card";
 import { OrderStatusPill } from "@/components/ui/status-pill";
 import { OrderActions } from "@/components/merchant/order-actions";
 import { formatCentavos, formatManilaTime, formatRelative } from "@/lib/format";
@@ -69,41 +68,26 @@ export function LiveQueueList({ orders }: { orders: LiveOrder[] }) {
   }, [orders]);
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2.5">
       {orders.map((order) => (
         <li key={order.id}>
-          <Card
+          <div
             className={cn(
-              "border-l-4",
+              "rounded-[20px] border-l-4 bg-card p-3.5 shadow-card",
               BORDER_TONE[order.status] ?? "border-l-line",
               flashIds.has(order.id) && "fd-new-row",
             )}
           >
-            <CardBody className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold">{order.code}</span>
-                    <OrderStatusPill status={order.status} audience="merchant" />
-                  </div>
-                  <p className="mt-1 truncate text-sm text-fg-muted">
-                    {order.type === "pickup"
-                      ? "Customer pickup"
-                      : (order.delivery_address?.line1 ?? "Delivery")}
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-bold">{formatCentavos(order.total_centavos)}</p>
-                  <p className="text-xs text-fg-muted">
-                    {order.promised_at
-                      ? `Due ${formatManilaTime(order.promised_at)}`
-                      : formatRelative(order.placed_at)}
-                  </p>
-                </div>
-              </div>
-              <OrderActions orderId={order.id} status={order.status} type={order.type} />
-            </CardBody>
-          </Card>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold">{order.code}</span>
+              <OrderStatusPill status={order.status} audience="merchant" />
+            </div>
+            <p className="mt-1 truncate text-xs text-fg-muted">
+              {formatCentavos(order.total_centavos)} · {order.type === "pickup" ? "Pickup" : "Delivery"} ·{" "}
+              {order.promised_at ? `due ${formatManilaTime(order.promised_at)}` : formatRelative(order.placed_at)}
+            </p>
+            <OrderActions orderId={order.id} status={order.status} type={order.type} />
+          </div>
         </li>
       ))}
     </ul>

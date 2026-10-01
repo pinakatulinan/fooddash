@@ -6,15 +6,16 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { OrdersTabs } from "@/components/customer/orders-tabs";
 import { OrderHistoryCard, type OrderHistoryRow } from "@/components/customer/order-history-card";
 
 export const metadata: Metadata = { title: "Order history" };
 
 const PAGE_SIZE = 25;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const SELECT =
-  "id, code, status, total_centavos, created_at, delivered_at, cancelled_at, " +
-  "merchants(name, cover_url), order_items(name_snapshot, quantity)";
+  "id, code, status, total_centavos, created_at, delivered_at, cancelled_at, merchants(name, slug, logo_url)";
 
 /**
  * A Manila calendar day, as the UTC instant range it actually covers - same
@@ -26,6 +27,21 @@ function manilaDayRangeUtc(dateStr: string): { gte: string; lt: string } {
   const start = new Date(`${dateStr}T00:00:00+08:00`);
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { gte: start.toISOString(), lt: end.toISOString() };
+}
+
+/** Kept out of the component body deliberately - reading the clock during
+    render is impure, and the React compiler is right to complain about it
+    even here where the component only ever runs once per request. Only
+    groups what is already on the current page - purely a presentation
+    grouping of chronologically-sorted rows, not a second query. */
+function groupByRecency(orders: OrderHistoryRow[]): { label: string; orders: OrderHistoryRow[] }[] {
+  const cutoff = Date.now() - WEEK_MS;
+  const thisWeek = orders.filter((o) => new Date(o.created_at).getTime() >= cutoff);
+  const earlier = orders.filter((o) => new Date(o.created_at).getTime() < cutoff);
+  const groups: { label: string; orders: OrderHistoryRow[] }[] = [];
+  if (thisWeek.length > 0) groups.push({ label: "This week", orders: thisWeek });
+  if (earlier.length > 0) groups.push({ label: "Earlier", orders: earlier });
+  return groups;
 }
 
 export default async function OrderHistoryPage({
@@ -59,6 +75,7 @@ export default async function OrderHistoryPage({
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const filtered = Boolean(code || date);
+  const groups = groupByRecency(orders);
 
   function pageHref(p: number): string {
     const params = new URLSearchParams();
@@ -71,12 +88,7 @@ export default async function OrderHistoryPage({
 
   return (
     <>
-      <ScreenHeader
-        title="Order history"
-        subtitle={`${total} ${total === 1 ? "order" : "orders"}`}
-        backHref="/orders"
-        titleClassName="font-bold"
-      >
+      <ScreenHeader title="Orders" titleClassName="text-[26px]">
         <form action="/orders/history" method="get" className="flex flex-wrap items-end gap-2">
           <div className="min-w-0 flex-1">
             <label htmlFor="q" className="sr-only">
@@ -88,7 +100,7 @@ export default async function OrderHistoryPage({
               type="search"
               defaultValue={code}
               placeholder="Order code"
-              className="h-11 w-full min-w-0 rounded-md border border-line bg-card px-3.5 text-base text-fg placeholder:text-fg-muted"
+              className="h-11 w-full min-w-0 rounded-2xl border-[1.5px] border-line-warm bg-card px-3.5 text-sm text-fg placeholder:text-fg-muted"
             />
           </div>
           <div>
@@ -100,12 +112,12 @@ export default async function OrderHistoryPage({
               name="date"
               type="date"
               defaultValue={date}
-              className="h-11 rounded-md border border-line bg-card px-3.5 text-base text-fg"
+              className="h-11 rounded-2xl border-[1.5px] border-line-warm bg-card px-3.5 text-sm text-fg"
             />
           </div>
           <button
             type="submit"
-            className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-5 font-semibold text-header hover:bg-coral-tint"
+            className="inline-flex h-11 items-center gap-2 rounded-2xl bg-fg px-5 text-sm font-semibold text-white"
           >
             <Search aria-hidden className="size-4" />
             Search
@@ -113,7 +125,7 @@ export default async function OrderHistoryPage({
           {filtered && (
             <Link
               href="/orders/history"
-              className="inline-flex h-11 items-center px-3 text-sm font-semibold text-header-fg underline-offset-2 hover:underline"
+              className="inline-flex h-11 items-center px-3 text-sm font-semibold text-primary underline-offset-2 hover:underline"
             >
               Clear
             </Link>
@@ -121,20 +133,29 @@ export default async function OrderHistoryPage({
         </form>
       </ScreenHeader>
 
-      <div className="space-y-4 px-4 py-6">
+      <div className="space-y-5 px-5 pb-6">
+        <OrdersTabs active="past" />
+
         {orders.length === 0 ? (
           <EmptyState
             icon={<Receipt className="size-6" />}
-            title={filtered ? "No orders match your search" : "No orders yet"}
+            title={filtered ? "No orders match your search" : "No past orders yet"}
           />
         ) : (
-          <ul className="space-y-2">
-            {orders.map((order) => (
-              <li key={order.id}>
-                <OrderHistoryCard order={order} />
-              </li>
+          <div className="space-y-5">
+            {groups.map((group) => (
+              <section key={group.label}>
+                <h2 className="mb-2.5 text-[13px] font-bold text-fg-muted">{group.label}</h2>
+                <ul className="space-y-2.5">
+                  {group.orders.map((order) => (
+                    <li key={order.id}>
+                      <OrderHistoryCard order={order} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
 
         {orders.length > 0 && totalPages > 1 && (

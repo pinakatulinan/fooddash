@@ -2,13 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Plus, Ticket } from "lucide-react";
+import { Banknote, CreditCard, MapPin, Plus, Smartphone, Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyError, cn } from "@/lib/utils";
 import { Button, LinkButton } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
-import { Pill } from "@/components/ui/status-pill";
 import { formatCentavos } from "@/lib/format";
 import type { CartQuote, PaymentMethod } from "@/lib/types/domain";
 
@@ -23,11 +21,11 @@ interface AddressOption {
 
 const TIP_PRESETS_CENTAVOS = [0, 2000, 3000, 5000];
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: "cod", label: "Cash on delivery" },
-  { value: "gcash", label: "GCash" },
-  { value: "maya", label: "Maya" },
-  { value: "card", label: "Card" },
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof Banknote }[] = [
+  { value: "cod", label: "Cash on delivery", icon: Banknote },
+  { value: "gcash", label: "GCash", icon: Smartphone },
+  { value: "maya", label: "Maya", icon: Smartphone },
+  { value: "card", label: "Card", icon: CreditCard },
 ];
 
 export function CheckoutForm({
@@ -76,6 +74,7 @@ export function CheckoutForm({
 
   const promoError = quote?.errors?.find((e) => e.code === "promo_invalid");
   const otherErrors = quote?.errors?.filter((e) => e.code !== "promo_invalid") ?? [];
+  const promoApplied = Boolean(quote?.promo_code) && quote!.discount_centavos > 0;
   const canPlace = Boolean(quote?.is_valid) && addressId && !placing;
 
   async function handlePlaceOrder() {
@@ -127,10 +126,10 @@ export function CheckoutForm({
   }
 
   return (
-    <div className="space-y-6 px-4 py-6">
+    <div className="space-y-6 px-5 pt-1 pb-56">
       <section aria-labelledby="address-heading">
         <div className="mb-3 flex items-center justify-between">
-          <h2 id="address-heading" className="text-sm font-bold tracking-wide text-fg-muted uppercase">
+          <h2 id="address-heading" className="text-[15px] font-bold">
             Deliver to
           </h2>
           {addresses.length > 0 && (
@@ -141,52 +140,41 @@ export function CheckoutForm({
         </div>
 
         {addresses.length === 0 ? (
-          <Card>
-            <div className="flex items-center justify-between gap-4 p-4">
-              <div>
-                <p className="text-sm font-semibold">No saved addresses</p>
-                <p className="mt-0.5 text-sm text-fg-muted">
-                  Add one to see your delivery fee and place this order.
-                </p>
-              </div>
-              <LinkButton href="/account/addresses/new?next=/checkout" size="sm">
-                Add address
-              </LinkButton>
-            </div>
-          </Card>
+          <div className="rounded-[18px] border-2 border-line-warm bg-card p-4">
+            <p className="text-sm font-semibold">No saved addresses</p>
+            <p className="mt-0.5 mb-3 text-sm text-fg-muted">
+              Add one to see your delivery fee and place this order.
+            </p>
+            <LinkButton href="/account/addresses/new?next=/checkout" size="sm">
+              Add address
+            </LinkButton>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="-mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1">
             {addresses.map((a) => {
               const active = addressId === a.id;
               return (
-                <label key={a.id}>
-                  <Card
+                <label key={a.id} className="w-55 shrink-0 snap-start">
+                  <div
                     className={cn(
-                      "cursor-pointer transition-colors",
-                      active && "border-primary",
+                      "h-full cursor-pointer rounded-[18px] border-2 bg-card p-3.5 transition-colors",
+                      active ? "border-primary bg-coral-tint" : "border-line-warm",
                     )}
                   >
-                    <div className="flex items-start gap-3 p-4">
-                      <input
-                        type="radio"
-                        name="address"
-                        value={a.id}
-                        checked={active}
-                        onChange={() => setAddressId(a.id)}
-                        className="sr-only"
-                      />
-                      <MapPin
-                        aria-hidden
-                        className={cn("mt-0.5 size-4 shrink-0", active ? "text-primary" : "text-fg-muted")}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{a.label}</p>
-                        <p className="text-sm text-fg-muted">
-                          {[a.line1, a.barangay, a.city].filter(Boolean).join(", ")}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
+                    <input
+                      type="radio"
+                      name="address"
+                      value={a.id}
+                      checked={active}
+                      onChange={() => setAddressId(a.id)}
+                      className="sr-only"
+                    />
+                    <MapPin aria-hidden className={cn("size-4.5", active ? "text-primary" : "text-fg-muted")} />
+                    <p className="mt-2 truncate text-sm font-bold">{a.label}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-fg-muted">
+                      {[a.line1, a.barangay, a.city].filter(Boolean).join(", ")}
+                    </p>
+                  </div>
                 </label>
               );
             })}
@@ -195,30 +183,39 @@ export function CheckoutForm({
       </section>
 
       <section aria-labelledby="payment-heading">
-        <h2 id="payment-heading" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+        <h2 id="payment-heading" className="mb-3 text-[15px] font-bold">
           Payment
         </h2>
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2.5">
           {PAYMENT_METHODS.map((m) => {
             const active = paymentMethod === m.value;
+            const Icon = m.icon;
             return (
               <label key={m.value}>
-                <Card className={cn("cursor-pointer transition-colors", active && "border-primary")}>
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment-method"
-                        value={m.value}
-                        checked={active}
-                        onChange={() => setPaymentMethod(m.value)}
-                        className="sr-only"
-                      />
-                      <span className="font-semibold">{m.label}</span>
-                    </div>
-                    {active && <Pill tone="success" showDot={false}>Selected</Pill>}
-                  </div>
-                </Card>
+                <div
+                  className={cn(
+                    "flex cursor-pointer items-center gap-2.5 rounded-[18px] border-2 bg-card p-3 transition-colors",
+                    active ? "border-primary bg-coral-tint" : "border-line-warm",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value={m.value}
+                    checked={active}
+                    onChange={() => setPaymentMethod(m.value)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={cn(
+                      "grid size-8 shrink-0 place-items-center rounded-full",
+                      active ? "bg-primary text-primary-fg" : "bg-cream text-fg-muted",
+                    )}
+                  >
+                    <Icon aria-hidden className="size-4" />
+                  </span>
+                  <span className="min-w-0 truncate text-[13px] font-bold">{m.label}</span>
+                </div>
               </label>
             );
           })}
@@ -226,10 +223,10 @@ export function CheckoutForm({
       </section>
 
       <section aria-labelledby="tip-heading">
-        <h2 id="tip-heading" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+        <h2 id="tip-heading" className="mb-3 text-[15px] font-bold">
           Add a tip for your rider
         </h2>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {TIP_PRESETS_CENTAVOS.map((amount) => (
             <button
               key={amount}
@@ -237,10 +234,8 @@ export function CheckoutForm({
               onClick={() => setTipCentavos(amount)}
               aria-pressed={tipCentavos === amount}
               className={cn(
-                "rounded-pill border px-4 py-2 text-sm font-semibold transition-colors",
-                tipCentavos === amount
-                  ? "border-primary bg-header text-header-fg"
-                  : "border-line bg-card hover:bg-surface-raised",
+                "rounded-xl py-2.5 text-center text-[13px] font-bold transition-colors",
+                tipCentavos === amount ? "bg-fg text-white" : "bg-neutral-chip text-fg",
               )}
             >
               {amount === 0 ? "No tip" : formatCentavos(amount)}
@@ -250,7 +245,7 @@ export function CheckoutForm({
       </section>
 
       <section aria-labelledby="promo-heading">
-        <h2 id="promo-heading" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
+        <h2 id="promo-heading" className="mb-3 text-[15px] font-bold">
           Promo code
         </h2>
         <div className="relative">
@@ -268,11 +263,16 @@ export function CheckoutForm({
           />
         </div>
         {promoError && <p className="mt-1.5 text-xs font-medium text-danger">{promoError.message}</p>}
+        {promoApplied && (
+          <span className="mt-2 inline-flex items-center gap-1 rounded-pill bg-mint-tint px-2.5 py-1 text-xs font-bold text-accent-fg">
+            {quote!.promo_code} applied — you saved {formatCentavos(quote!.discount_centavos)}
+          </span>
+        )}
       </section>
 
       <section aria-labelledby="notes-heading">
-        <h2 id="notes-heading" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-          Notes for your rider <span className="font-normal normal-case text-fg-muted">(optional)</span>
+        <h2 id="notes-heading" className="mb-3 text-[15px] font-bold">
+          Notes for your rider <span className="font-normal text-fg-muted">(optional)</span>
         </h2>
         <Textarea
           value={notes}
@@ -283,55 +283,50 @@ export function CheckoutForm({
       </section>
 
       {otherErrors.map((e) => (
-        <p key={e.code} role="alert" className="rounded-md bg-warning-tint px-4 py-3 text-sm font-medium text-warning">
+        <p key={e.code} role="alert" className="rounded-2xl bg-warning-tint px-4 py-3 text-sm font-medium text-warning">
           {e.message}
         </p>
       ))}
 
       {quote && (
-        <Card>
-          <dl className="divide-y divide-line">
-            <Row label="Subtotal" value={formatCentavos(quote.subtotal_centavos)} />
-            <Row label="Delivery" value={formatCentavos(quote.delivery_fee_centavos)} />
-            {quote.service_fee_centavos > 0 && (
-              <Row label="Service fee" value={formatCentavos(quote.service_fee_centavos)} />
-            )}
-            {quote.discount_centavos > 0 && (
-              <Row
-                label={`Discount${quote.promo_code ? ` (${quote.promo_code})` : ""}`}
-                value={`−${formatCentavos(quote.discount_centavos)}`}
-                tone="accent"
-              />
-            )}
-            {tipCentavos > 0 && <Row label="Tip" value={formatCentavos(tipCentavos)} />}
+        <div className="rounded-[20px] bg-card px-4 py-1 shadow-card">
+          <Row label="Subtotal" value={formatCentavos(quote.subtotal_centavos)} />
+          <Row label="Delivery" value={formatCentavos(quote.delivery_fee_centavos)} />
+          {quote.service_fee_centavos > 0 && (
+            <Row label="Service fee" value={formatCentavos(quote.service_fee_centavos)} />
+          )}
+          {quote.discount_centavos > 0 && (
             <Row
-              label="Total"
-              value={quoting ? "…" : formatCentavos(quote.total_centavos)}
-              strong
+              label={`Discount${quote.promo_code ? ` (${quote.promo_code})` : ""}`}
+              value={`−${formatCentavos(quote.discount_centavos)}`}
+              tone="accent"
             />
-          </dl>
-        </Card>
+          )}
+          {tipCentavos > 0 && <Row label="Tip" value={formatCentavos(tipCentavos)} />}
+          <Row label="Total" value={quoting ? "…" : formatCentavos(quote.total_centavos)} strong />
+        </div>
       )}
 
       {placeError && (
-        <p role="alert" className="rounded-md bg-danger-tint px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded-2xl bg-danger-tint px-4 py-3 text-sm text-danger">
           {placeError}
         </p>
       )}
 
-      <Button size="lg" fullWidth onClick={handlePlaceOrder} loading={placing} disabled={!canPlace}>
-        {paymentMethod === "cod"
-          ? quote
-            ? `Place order — ${formatCentavos(quote.total_centavos)}`
-            : "Place order"
-          : "Continue to payment"}
-      </Button>
-
-      <p className="text-center text-xs text-fg-muted">
-        {paymentMethod === "cod"
-          ? "You will pay cash on delivery when your order arrives."
-          : "You'll finish payment on PayMongo's secure page, then come back here."}
-      </p>
+      <div className="fixed inset-x-0 bottom-0 z-40 rounded-t-[28px] bg-card px-5 pt-4 pb-7.5 shadow-[0_-8px_24px_rgb(122_58_31/0.08)]">
+        <p className="mb-2 text-center text-xs text-fg-muted">
+          {quote
+            ? tipCentavos > 0
+              ? `Total incl. ${formatCentavos(tipCentavos)} tip: ${formatCentavos(quote.total_centavos)}`
+              : `Total: ${formatCentavos(quote.total_centavos)}`
+            : paymentMethod === "cod"
+              ? "You will pay cash on delivery when your order arrives."
+              : "You'll finish payment on PayMongo's secure page, then come back here."}
+        </p>
+        <Button size="lg" fullWidth onClick={handlePlaceOrder} loading={placing} disabled={!canPlace}>
+          {paymentMethod === "cod" ? "Place order" : "Continue to payment"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -348,12 +343,19 @@ function Row({
   tone?: "accent";
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <dt className={strong ? "font-bold" : "text-fg-muted"}>{label}</dt>
+    <div
+      className={cn(
+        "flex items-center justify-between py-3",
+        strong ? "border-t border-line" : "border-b border-dashed border-line-warm",
+      )}
+    >
+      <dt className={cn("text-sm", strong ? "font-bold" : "text-fg-muted")}>{label}</dt>
       <dd
-        className={`tabular-nums ${strong ? "text-lg font-extrabold" : "font-semibold"} ${
-          tone === "accent" ? "text-accent-fg" : ""
-        }`}
+        className={cn(
+          "tabular-nums",
+          strong ? "text-xl font-extrabold" : "text-sm font-semibold",
+          tone === "accent" && "text-accent-fg",
+        )}
       >
         {value}
       </dd>

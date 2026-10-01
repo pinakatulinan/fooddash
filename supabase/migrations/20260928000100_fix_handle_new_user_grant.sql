@@ -1,0 +1,22 @@
+-- ============================================================================
+-- 0026  Fix handle_new_user()'s execute grant, broken by 0024
+-- ----------------------------------------------------------------------------
+-- 0024 revoked EXECUTE from PUBLIC on every function that had previously only
+-- had a role-specific revoke - correct for every RPC on that list, but
+-- handle_new_user() is not an RPC. It's the on_auth_user_created trigger
+-- (0002), fired by an INSERT into auth.users performed by Supabase's Auth
+-- service under the supabase_auth_admin role - a role that was never
+-- separately granted EXECUTE, because the implicit PUBLIC grant covered it
+-- silently since the very first migration. Closing that PUBLIC grant in 0024
+-- took this one legitimate use down with it: every signup since then (email
+-- or OAuth, both insert an auth.users row) has failed at that INSERT with
+-- "Database error saving new user" - permission denied on the trigger
+-- function, surfaced by the Auth service as that generic message.
+--
+-- Fixed narrowly: EXECUTE goes to supabase_auth_admin specifically, not back
+-- to anon/authenticated/public - a random client still has no business
+-- calling this directly, which is the actual security property 0024 was
+-- protecting. Only the one role that legitimately needs it gets it.
+-- ============================================================================
+
+grant execute on function public.handle_new_user() to supabase_auth_admin;

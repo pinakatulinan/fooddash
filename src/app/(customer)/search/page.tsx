@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Search, SearchX } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchBar } from "@/components/customer/search-bar";
 import { DEFAULT_LOCATION, MerchantGrid } from "@/components/customer/merchant-grid";
+import { getFavoritedMerchantIds } from "@/lib/favorites";
 import type { MerchantCard } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Search" };
@@ -27,10 +28,11 @@ export default async function SearchPage({
 
   const { q = "" } = await searchParams;
   const term = q.trim();
+  const supabase = await createClient();
+  const { user } = await getCurrentUser();
 
   let results: MerchantCard[] = [];
   if (term) {
-    const supabase = await createClient();
     const { data } = await supabase.rpc("nearby_merchants", {
       p_lat: DEFAULT_LOCATION.lat,
       p_lng: DEFAULT_LOCATION.lng,
@@ -40,6 +42,7 @@ export default async function SearchPage({
     });
     results = (data ?? []) as MerchantCard[];
   }
+  const favoritedIds = await getFavoritedMerchantIds(supabase, user?.id);
 
   return (
     <>
@@ -65,7 +68,7 @@ export default async function SearchPage({
             <p className="mb-4 text-sm text-fg-muted">
               {results.length} {results.length === 1 ? "result" : "results"} for “{term}”
             </p>
-            <MerchantGrid merchants={results} />
+            <MerchantGrid merchants={results} favoritedIds={favoritedIds} />
           </>
         )}
       </div>

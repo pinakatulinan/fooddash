@@ -1,23 +1,12 @@
-import {
-  Banknote,
-  CheckCircle2,
-  ClipboardList,
-  type LucideIcon,
-  Minus,
-  PauseCircle,
-  ShoppingBag,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { Minus, PauseCircle, TrendingDown, TrendingUp, UtensilsCrossed } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Pill } from "@/components/ui/status-pill";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { CreateStoreForm } from "@/components/merchant/create-store-form";
+import { PauseStoreControl } from "@/components/merchant/pause-store-control";
 import { LiveQueueList } from "@/components/merchant/live-queue-list";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
 import { formatCentavos } from "@/lib/format";
@@ -54,12 +43,22 @@ export default async function MerchantTodayPage() {
   // beyond picking one. Multi-store owners get a switcher in the merchant slice.
   const { data: membership } = await supabase
     .from("merchant_members")
-    .select("merchant_id, merchants(id, name, is_accepting_orders, status)")
+    .select(
+      "merchant_id, merchants(id, name, logo_url, is_accepting_orders, paused_until, pause_reason, status)",
+    )
     .limit(1)
     .maybeSingle();
 
   const merchant = membership?.merchants as
-    | { id: string; name: string; is_accepting_orders: boolean; status: string }
+    | {
+        id: string;
+        name: string;
+        logo_url: string | null;
+        is_accepting_orders: boolean;
+        paused_until: string | null;
+        pause_reason: string | null;
+        status: string;
+      }
     | undefined;
 
   if (!merchant) {
@@ -101,55 +100,59 @@ export default async function MerchantTodayPage() {
     <>
       <RealtimeRefresh table="orders" filter={`merchant_id=eq.${merchant.id}`} />
 
-      <ScreenHeader
-        title={merchant.name}
-        subtitle="Last 7 days"
-        actions={
-          <Pill tone={merchant.is_accepting_orders ? "success" : "danger"}>
-            {merchant.is_accepting_orders ? "Accepting orders" : "Paused"}
-          </Pill>
-        }
-      />
+      <div className="flex items-center gap-3 px-5 pt-3.5">
+        {merchant.logo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={merchant.logo_url} alt="" className="size-12 shrink-0 rounded-pill border border-line object-cover" />
+        ) : (
+          <div className="grid size-12 shrink-0 place-items-center rounded-pill bg-coral-tint">
+            <UtensilsCrossed aria-hidden className="size-5 text-primary" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[19px] font-extrabold tracking-[-0.01em]">{merchant.name}</h1>
+          <p className="text-xs text-fg-muted">Last 7 days</p>
+        </div>
+        <NotificationBell surface="merchant" />
+      </div>
 
-      <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6">
+      <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-5">
         {merchant.status !== "approved" && (
-          <div className="rounded-md border border-line bg-surface px-4 py-3 text-sm text-fg-muted">
+          <div className="rounded-2xl bg-cream px-4 py-3 text-sm text-fg-muted">
             {merchant.status === "rejected"
               ? "Your store application was not approved. Check Settings for the reason, or reach out to ops."
               : "Your store is in review. Add your address and opening hours in Settings, and ops will reach out once it's ready to go live."}
           </div>
         )}
 
+        <PauseStoreControl
+          merchantId={merchant.id}
+          isAcceptingOrders={merchant.is_accepting_orders}
+          pausedUntil={merchant.paused_until}
+          pauseReason={merchant.pause_reason}
+        />
+
         <section aria-labelledby="week-heading">
           <h2 id="week-heading" className="sr-only">
             This week
           </h2>
-          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-2.5">
             <Stat
-              icon={ShoppingBag}
-              chip="coral"
               label="Orders"
               value={String(summary.orders_count ?? 0)}
               trend={trendPct(summary.orders_count, previous.orders_count)}
             />
             <Stat
-              icon={Banknote}
-              chip="mint"
               label="Gross sales"
               value={formatCentavos(summary.gross_centavos ?? 0)}
               trend={trendPct(summary.gross_centavos, previous.gross_centavos)}
             />
             <Stat
-              icon={Wallet}
-              chip="coral"
               label="Your payout"
               value={formatCentavos(summary.payout_centavos ?? 0)}
               trend={trendPct(summary.payout_centavos, previous.payout_centavos)}
             />
             <Stat
-              icon={CheckCircle2}
-              // The number that predicts complaints before customers write them.
-              chip={(summary.acceptance_rate ?? 1) < 0.9 ? "warn" : "mint"}
               label="Acceptance"
               value={`${Math.round((summary.acceptance_rate ?? 0) * 100)}%`}
               tone={(summary.acceptance_rate ?? 1) < 0.9 ? "warn" : "normal"}
@@ -159,22 +162,18 @@ export default async function MerchantTodayPage() {
         </section>
 
         <section aria-labelledby="queue-heading">
-          <h2
-            id="queue-heading"
-            className="mb-3 flex items-center gap-1.5 text-sm font-bold tracking-wide text-fg-muted uppercase"
-          >
-            <ClipboardList aria-hidden className="size-4" />
-            Live queue ({orders.length})
+          <h2 id="queue-heading" className="mb-3 text-[16px] font-bold">
+            Live queue <span className="text-primary">{orders.length}</span>
           </h2>
 
           {orders.length === 0 ? (
-            <Card>
+            <div className="rounded-[20px] bg-card shadow-card">
               <EmptyState
                 icon={<PauseCircle className="size-6" />}
                 title="Nothing cooking"
                 description="New orders appear here the moment a customer places one."
               />
-            </Card>
+            </div>
           ) : (
             <LiveQueueList orders={orders} />
           )}
@@ -183,14 +182,6 @@ export default async function MerchantTodayPage() {
     </>
   );
 }
-
-type ChipTone = "coral" | "mint" | "warn";
-
-const CHIP_CLASSES: Record<ChipTone, string> = {
-  coral: "bg-coral-tint text-header-fg",
-  mint: "bg-mint-tint text-accent-fg",
-  warn: "bg-warning-tint text-warning",
-};
 
 interface Trend {
   dir: "up" | "down" | "flat";
@@ -211,15 +202,11 @@ const TREND_ICON: Record<Trend["dir"], typeof TrendingUp> = {
 const TREND_CLASSES = "text-fg-muted";
 
 function Stat({
-  icon: Icon,
-  chip,
   label,
   value,
   tone = "normal",
   trend,
 }: {
-  icon: LucideIcon;
-  chip: ChipTone;
   label: string;
   value: string;
   tone?: "normal" | "warn";
@@ -228,28 +215,18 @@ function Stat({
   const TrendIcon = trend ? TREND_ICON[trend.dir] : null;
 
   return (
-    <Card>
-      <CardBody className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <dt className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{label}</dt>
-          <span
-            aria-hidden
-            className={`grid size-7 shrink-0 place-items-center rounded-pill ${CHIP_CLASSES[chip]}`}
-          >
-            <Icon aria-hidden className="size-3.5" />
-          </span>
-        </div>
-        <dd className={`mt-1.5 text-xl font-extrabold tracking-tight ${tone === "warn" ? "text-warning" : ""}`}>
-          {value}
-        </dd>
-        {trend && TrendIcon && (
-          <p className={`mt-1 flex items-center gap-1 text-xs font-medium ${TREND_CLASSES}`}>
-            <TrendIcon aria-hidden className="size-3" />
-            {trend.label} vs last week
-          </p>
-        )}
-      </CardBody>
-    </Card>
+    <div className="rounded-[18px] bg-card px-3.5 py-3 shadow-card">
+      <dt className="text-xs text-fg-muted">{label}</dt>
+      <dd className={`mt-1.5 text-[22px] font-extrabold tracking-tight ${tone === "warn" ? "text-warning" : ""}`}>
+        {value}
+      </dd>
+      {trend && TrendIcon && (
+        <p className={`mt-1 flex items-center gap-1 text-[11px] font-medium ${TREND_CLASSES}`}>
+          <TrendIcon aria-hidden className="size-3" />
+          {trend.label} vs last week
+        </p>
+      )}
+    </div>
   );
 }
 

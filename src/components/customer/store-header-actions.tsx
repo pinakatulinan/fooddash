@@ -45,16 +45,20 @@ export function StoreHeaderActions({
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2.5">
         <button
           type="button"
           onClick={showMap}
           aria-label={`Show ${merchantName} on the map`}
-          className="grid size-10 place-items-center rounded-pill hover:bg-white/15"
+          className="grid size-10.5 place-items-center rounded-full bg-card text-fg shadow-card hover:brightness-95"
         >
           <MapPin aria-hidden className="size-5" />
         </button>
-        <FavoriteButton merchantId={merchantId} initialFavorited={initialFavorited} />
+        <FavoriteButton
+          merchantId={merchantId}
+          initialFavorited={initialFavorited}
+          className="size-10.5 bg-card text-primary shadow-card hover:bg-card hover:brightness-95"
+        />
       </div>
 
       {open && (

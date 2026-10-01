@@ -21,9 +21,10 @@ export default async function CustomerLayout({
     <div className="min-h-dvh bg-bg-subtle">
       <CustomerTopBar user={user} />
 
-      {/* pb-20 clears the bottom tab bar on mobile; it is a fixed element and
-          would otherwise sit on top of the last card in every list. */}
-      <main id="main" className="mx-auto w-full max-w-5xl pb-20 md:pb-10">
+      {/* pb-28 clears the floating bottom tab bar (and its raised cart FAB)
+          on mobile; it is a fixed element and would otherwise sit on top of
+          the last card in every list. */}
+      <main id="main" className="mx-auto w-full max-w-5xl pb-28 md:pb-10">
         {children}
       </main>
 

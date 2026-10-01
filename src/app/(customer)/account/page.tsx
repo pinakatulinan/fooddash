@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
-import { MapPin, Plus, Star } from "lucide-react";
+import Link from "next/link";
+import { Bell, ChevronRight, Heart, LifeBuoy, LogOut, MapPin, Receipt, Shield } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
-import { ScreenHeader } from "@/components/ui/screen-header";
-import { Card } from "@/components/ui/card";
-import { Button, LinkButton } from "@/components/ui/button";
-import { Pill } from "@/components/ui/status-pill";
-import { EmptyState } from "@/components/ui/empty-state";
-import { displayPhone } from "@/lib/format";
 import { signOut } from "@/app/(auth)/actions";
 
 export const metadata: Metadata = { title: "Account" };
+
+const SUPPORT_EMAIL = "support@fooddash.test";
+
+/** "Jamie Dela Cruz" -> "JD". Falls back to an email's first letter, then a
+    generic mark - an avatar needs something to show even for a profile row
+    that somehow has neither (shouldn't happen, but signup order is not
+    enforced at the type level). */
+function initials(name: string | null | undefined, email: string | null | undefined): string {
+  if (name?.trim()) {
+    const parts = name.trim().split(/\s+/);
+    return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+  }
+  if (email) return email[0].toUpperCase();
+  return "?";
+}
 
 export default async function AccountPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
@@ -19,103 +29,107 @@ export default async function AccountPage() {
   const { user, profile } = await getCurrentUser();
   const supabase = await createClient();
 
-  const { data: addresses } = await supabase
-    .from("addresses")
-    .select("id, label, line1, barangay, city, province, landmark, is_default")
-    .is("archived_at", null)
-    .order("is_default", { ascending: false });
+  const [{ count: addressCount }, { count: orderCount }, { count: favoriteCount }] = await Promise.all([
+    supabase.from("addresses").select("id", { count: "exact", head: true }).is("archived_at", null),
+    supabase.from("orders").select("id", { count: "exact", head: true }),
+    supabase.from("favorites").select("id", { count: "exact", head: true }),
+  ]);
 
   return (
-    <>
-      <ScreenHeader
-        title={profile?.full_name ?? "Your account"}
-        subtitle={user?.email ?? undefined}
-        actions={profile?.role ? <Pill tone="neutral">{profile.role}</Pill> : undefined}
-        titleClassName="font-bold"
-      />
+    <div className="space-y-5 px-5 pt-3 pb-6">
+      <h1 className="text-[26px] font-extrabold tracking-[-0.01em]">Account</h1>
 
-      <div className="space-y-8 px-4 py-6">
-        <section aria-labelledby="details">
-          <h2 id="details" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-            Details
-          </h2>
-          <Card>
-            <dl className="divide-y divide-line">
-              <Row label="Name" value={profile?.full_name ?? "—"} />
-              <Row label="Email" value={user?.email ?? "—"} />
-              <Row label="Mobile" value={displayPhone(profile?.phone)} />
-            </dl>
-          </Card>
-        </section>
-
-        <section aria-labelledby="addresses">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 id="addresses" className="text-sm font-bold tracking-wide text-fg-muted uppercase">
-              Delivery addresses
-            </h2>
-            {(addresses ?? []).length > 0 && (
-              <LinkButton href="/account/addresses/new" size="sm" variant="secondary">
-                <Plus aria-hidden className="size-3.5" /> Add
-              </LinkButton>
-            )}
-          </div>
-
-          {(addresses ?? []).length === 0 ? (
-            <Card>
-              <EmptyState
-                icon={<MapPin className="size-6" />}
-                title="No saved addresses"
-                description="Add one to start ordering delivery."
-                action={<LinkButton href="/account/addresses/new">Add an address</LinkButton>}
-              />
-            </Card>
-          ) : (
-            <ul className="space-y-2">
-              {addresses!.map((a) => (
-                <li key={a.id}>
-                  <Card>
-                    <div className="flex items-start gap-3 p-4">
-                      <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted" />
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 font-semibold">
-                          {a.label}
-                          {a.is_default && (
-                            <Pill tone="success" showDot={false}>
-                              <Star aria-hidden className="size-3 fill-current" />
-                              Default
-                            </Pill>
-                          )}
-                        </p>
-                        <p className="mt-0.5 text-sm text-fg-muted">
-                          {[a.line1, a.barangay, a.city, a.province].filter(Boolean).join(", ")}
-                        </p>
-                        {a.landmark && (
-                          <p className="mt-1 text-sm text-fg-muted italic">“{a.landmark}”</p>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <form action={signOut}>
-          <Button type="submit" variant="secondary" fullWidth>
-            Sign out
-          </Button>
-        </form>
+      <div className="flex items-center gap-3.5 rounded-3xl bg-card p-4.5 shadow-tile">
+        <span className="grid size-15 shrink-0 place-items-center rounded-pill bg-coral-pastel text-[22px] font-extrabold text-hero-brown">
+          {initials(profile?.full_name, user?.email)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[17px] font-bold">{profile?.full_name ?? "Your account"}</p>
+          <p className="truncate text-[13px] text-fg-muted">{user?.email ?? "—"}</p>
+        </div>
+        <ChevronRight aria-hidden className="size-4.5 shrink-0 text-fg-muted" />
       </div>
-    </>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link href="/orders" className="rounded-[18px] bg-primary p-3.5 text-primary-fg">
+          <Receipt aria-hidden className="size-5" />
+          <p className="mt-2.5 text-xl font-extrabold tabular-nums">{orderCount ?? 0}</p>
+          <p className="text-[12px] text-primary-fg/85">orders placed</p>
+        </Link>
+        <Link href="/favorites" className="rounded-[18px] bg-mint-tint p-3.5 text-accent-fg">
+          <Heart aria-hidden className="size-5" />
+          <p className="mt-2.5 text-xl font-extrabold tabular-nums">{favoriteCount ?? 0}</p>
+          <p className="text-[12px] text-accent-fg/75">favorite kitchens</p>
+        </Link>
+      </div>
+
+      <div className="rounded-3xl bg-card py-1.5 shadow-card">
+        <MenuRow
+          href="/account/addresses"
+          icon={<MapPin aria-hidden className="size-4.5" />}
+          label="Saved addresses"
+          meta={addressCount ? `${addressCount}` : undefined}
+        />
+        <Divider />
+        <MenuRow icon={<Bell aria-hidden className="size-4.5" />} label="Notifications" />
+        <Divider />
+        <MenuRow
+          href={`mailto:${SUPPORT_EMAIL}`}
+          icon={<LifeBuoy aria-hidden className="size-4.5" />}
+          label="Help & support"
+        />
+        <Divider />
+        <MenuRow href="/privacy" icon={<Shield aria-hidden className="size-4.5" />} label="Privacy & terms" />
+      </div>
+
+      <form action={signOut} className="rounded-3xl bg-card shadow-card">
+        <button
+          type="submit"
+          className="flex w-full items-center gap-3.5 px-4.5 py-3.5 text-left text-[14px] font-semibold text-danger"
+        >
+          <span className="grid size-9.5 shrink-0 place-items-center rounded-[12px] bg-danger-tint">
+            <LogOut aria-hidden className="size-4.5" />
+          </span>
+          Sign out
+        </button>
+      </form>
+    </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
-      <dt className="text-sm text-fg-muted">{label}</dt>
-      <dd className="truncate text-sm font-semibold">{value}</dd>
-    </div>
+function Divider() {
+  return <div role="separator" className="mx-4.5 h-px bg-[#F7EFEA]" />;
+}
+
+function MenuRow({
+  href,
+  icon,
+  label,
+  meta,
+}: {
+  href?: string;
+  icon: React.ReactNode;
+  label: string;
+  meta?: string;
+}) {
+  const content = (
+    <>
+      <span className="grid size-9.5 shrink-0 place-items-center rounded-[12px] bg-coral-tint text-primary">
+        {icon}
+      </span>
+      <span className="flex-1 text-[14px] font-semibold">{label}</span>
+      {meta && <span className="text-sm text-fg-muted tabular-nums">{meta}</span>}
+      <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-muted" />
+    </>
+  );
+
+  const className = "flex items-center gap-3.5 px-4.5 py-3";
+
+  return href ? (
+    <Link href={href} className={className}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className}>{content}</div>
   );
 }

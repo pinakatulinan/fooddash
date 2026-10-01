@@ -150,7 +150,24 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    // GoTrue collapses every failure inside handle_new_user() (0002) into
+    // this exact generic string, whatever actually went wrong - including
+    // the ordinary case of profiles_phone_key (0002) rejecting a phone
+    // number already tied to a different account. There is no more specific
+    // reason to read off the error itself; RLS also rules out a pre-check
+    // query against profiles by phone before this point, since letting an
+    // unauthenticated form confirm "this phone belongs to someone" is an
+    // account-enumeration leak of its own. This is the honest middle ground:
+    // name the likely cause without confirming which one it actually was.
+    if (error.message === "Database error saving new user") {
+      return {
+        error:
+          "That email or mobile number may already belong to another FoodDash account. Try signing in instead, or use a different one.",
+      };
+    }
+    return { error: error.message };
+  }
 
   revalidatePath("/", "layout");
   return {

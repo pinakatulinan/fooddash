@@ -16,17 +16,17 @@ export const AuthInput = React.forwardRef<
     trailing?: React.ReactNode;
   }
 >(({ icon: Icon, invalid, trailing, className, ...props }, ref) => (
-  <div className="relative">
+  <div className="group relative">
     <Icon
       aria-hidden
-      className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-fg-muted"
+      className="pointer-events-none absolute top-1/2 left-4 size-4.75 -translate-y-1/2 text-fg-muted group-focus-within:text-primary"
     />
     <input
       ref={ref}
       aria-invalid={invalid || undefined}
       className={cn(
-        "h-12 w-full rounded-lg border border-line bg-card pl-10.5 text-base text-fg",
-        trailing ? "pr-11" : "pr-3.5",
+        "h-13.5 w-full rounded-2xl border-[1.5px] border-line-warm bg-[#FBF7F5] pl-11 text-base text-fg",
+        trailing ? "pr-11" : "pr-4",
         "placeholder:text-fg-muted",
         "focus-visible:border-primary",
         invalid && "border-danger",

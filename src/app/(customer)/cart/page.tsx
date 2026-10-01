@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ChevronRight, MapPin, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
-import { RemoveCartItemButton } from "@/components/customer/remove-cart-item";
 import { CartItemQuantity } from "@/components/customer/cart-item-quantity";
 import { formatCentavos, formatDelta } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { CartQuote } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Your cart" };
@@ -76,9 +75,9 @@ export default async function CartPage() {
         backHref={store ? `/store/${store.slug}` : "/"}
       />
 
-      <div className="space-y-6 px-4 py-6">
+      <div className="space-y-5 px-5 pt-1 pb-44">
         {error && (
-          <p role="alert" className="rounded-md bg-danger-tint px-4 py-3 text-sm text-danger">
+          <p role="alert" className="rounded-2xl bg-danger-tint px-4 py-3 text-sm text-danger">
             {error.message}
           </p>
         )}
@@ -87,98 +86,119 @@ export default async function CartPage() {
           <p
             key={e.code}
             role="alert"
-            className="rounded-md bg-warning-tint px-4 py-3 text-sm font-medium text-warning"
+            className="rounded-2xl bg-warning-tint px-4 py-3 text-sm font-medium text-warning"
           >
             {e.message}
           </p>
         ))}
 
-        <ul className="space-y-2">
+        <ul className="space-y-2.5">
           {quote?.lines?.map((line) => (
             <li key={line.cart_item_id}>
-              <Card>
-                <div className="flex items-start gap-4 p-4">
-                  <CartItemQuantity cartItemId={line.cart_item_id} quantity={line.quantity} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold">{line.name}</p>
-                    {line.options.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-sm text-fg-muted">
-                        {line.options.map((o) => (
-                          <li key={o.option_id}>
-                            {o.group_name}: {o.name}{" "}
-                            {o.price_delta_centavos !== 0 && (
-                              <span className="tabular-nums">
-                                {formatDelta(o.price_delta_centavos)}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {line.notes && (
-                      <p className="mt-1 text-sm text-fg-muted italic">“{line.notes}”</p>
-                    )}
-                  </div>
-                  <p className="shrink-0 font-bold tabular-nums">
+              <div className="flex items-center gap-3 rounded-[20px] bg-card p-3 shadow-card">
+                {line.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={line.image_url} alt="" className="size-18 shrink-0 rounded-[14px] object-cover" />
+                ) : (
+                  <div className="size-18 shrink-0 rounded-[14px] bg-surface-raised" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-bold">{line.name}</p>
+                  {line.options.length > 0 && (
+                    <p className="mt-0.5 truncate text-xs text-fg-muted">
+                      {line.options
+                        .map((o) => `${o.name}${o.price_delta_centavos !== 0 ? ` (${formatDelta(o.price_delta_centavos)})` : ""}`)
+                        .join(", ")}
+                    </p>
+                  )}
+                  {line.notes && (
+                    <p className="mt-0.5 truncate text-xs text-fg-muted italic">“{line.notes}”</p>
+                  )}
+                  <p className="mt-1.5 text-[15px] font-extrabold tabular-nums">
                     {formatCentavos(line.line_total_centavos)}
                   </p>
-                  <RemoveCartItemButton cartItemId={line.cart_item_id} />
                 </div>
-              </Card>
+                <CartItemQuantity cartItemId={line.cart_item_id} quantity={line.quantity} />
+              </div>
             </li>
           ))}
         </ul>
 
-        {quote && (
-          <Card>
-            <dl className="divide-y divide-line">
-              <Row label="Subtotal" value={formatCentavos(quote.subtotal_centavos)} />
-              <Row
-                label={
-                  quote.distance_m ? `Delivery (${(quote.distance_m / 1000).toFixed(1)} km)` : "Delivery"
-                }
-                value={formatCentavos(quote.delivery_fee_centavos)}
-              />
-              {quote.service_fee_centavos > 0 && (
-                <Row label="Service fee" value={formatCentavos(quote.service_fee_centavos)} />
-              )}
-              {quote.discount_centavos > 0 && (
-                <Row
-                  label={`Discount${quote.promo_code ? ` (${quote.promo_code})` : ""}`}
-                  value={`−${formatCentavos(quote.discount_centavos)}`}
-                  tone="accent"
-                />
-              )}
-              <Row label="Total" value={formatCentavos(quote.total_centavos)} strong />
-            </dl>
-          </Card>
+        {store && (
+          <Link
+            href={`/store/${store.slug}`}
+            className="block text-[13px] font-semibold text-primary"
+          >
+            + Add more items
+          </Link>
         )}
 
-        <div className="rounded-md border border-line bg-surface px-4 py-3 text-sm text-fg-muted">
-          {address ? (
-            <>
-              Delivering to <span className="font-semibold text-fg">{address.label}</span> —{" "}
-              {[address.line1, address.barangay, address.city].filter(Boolean).join(", ")}
-            </>
-          ) : (
-            <>
-              No delivery address saved yet. Add one from{" "}
-              <Link href="/account" className="font-semibold text-primary underline underline-offset-2">
-                your account
-              </Link>{" "}
-              to see the delivery fee.
-            </>
-          )}
-        </div>
+        <Link
+          href="/account/addresses"
+          className="flex items-center gap-3 rounded-[20px] bg-card p-3.5 shadow-card"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-coral-tint text-primary">
+            <MapPin aria-hidden className="size-4.5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            {address ? (
+              <>
+                <span className="block text-sm font-bold">{address.label}</span>
+                <span className="block truncate text-xs text-fg-muted">
+                  {[address.line1, address.barangay, address.city].filter(Boolean).join(", ")}
+                </span>
+              </>
+            ) : (
+              <span className="block text-sm font-semibold text-fg-muted">Add a delivery address</span>
+            )}
+          </span>
+          <ChevronRight aria-hidden className="size-4.5 shrink-0 text-fg-muted" />
+        </Link>
 
+        {quote && (
+          <div className="rounded-[20px] bg-card px-4 py-1 shadow-card">
+            <Row label="Subtotal" value={formatCentavos(quote.subtotal_centavos)} />
+            <Row
+              label={
+                quote.distance_m ? `Delivery (${(quote.distance_m / 1000).toFixed(1)} km)` : "Delivery"
+              }
+              value={formatCentavos(quote.delivery_fee_centavos)}
+            />
+            {quote.service_fee_centavos > 0 && (
+              <Row label="Service fee" value={formatCentavos(quote.service_fee_centavos)} />
+            )}
+            {quote.discount_centavos > 0 && (
+              <Row
+                label={`Discount${quote.promo_code ? ` (${quote.promo_code})` : ""}`}
+                value={`−${formatCentavos(quote.discount_centavos)}`}
+                tone="accent"
+              />
+            )}
+            <Row label="Total" value={formatCentavos(quote.total_centavos)} strong />
+          </div>
+        )}
+
+        {!address && (
+          <p className="text-center text-xs text-fg-muted">
+            No delivery address saved yet —{" "}
+            <Link href="/account/addresses/new" className="font-semibold text-primary underline underline-offset-2">
+              add one
+            </Link>{" "}
+            to see your delivery fee.
+          </p>
+        )}
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 rounded-t-[28px] bg-card px-5 pt-4 pb-7.5 shadow-[0_-8px_24px_rgb(122_58_31/0.08)]">
         <LinkButton
           href="/checkout"
           size="lg"
           fullWidth
-          className={quote?.is_valid ? undefined : "pointer-events-none opacity-50"}
+          className={cn("flex items-center justify-between", !quote?.is_valid && "pointer-events-none opacity-50")}
           aria-disabled={!quote?.is_valid}
         >
-          {quote ? `Checkout — ${formatCentavos(quote.total_centavos)}` : "Checkout"}
+          <span>Checkout</span>
+          <span>{quote ? `${formatCentavos(quote.total_centavos)} →` : "→"}</span>
         </LinkButton>
       </div>
     </>
@@ -197,12 +217,19 @@ function Row({
   tone?: "accent";
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <dt className={strong ? "font-bold" : "text-fg-muted"}>{label}</dt>
+    <div
+      className={cn(
+        "flex items-center justify-between py-3",
+        strong ? "border-t border-line" : "border-b border-dashed border-line-warm",
+      )}
+    >
+      <dt className={cn("text-sm", strong ? "font-bold" : "text-fg-muted")}>{label}</dt>
       <dd
-        className={`tabular-nums ${strong ? "text-lg font-extrabold" : "font-semibold"} ${
-          tone === "accent" ? "text-accent-fg" : ""
-        }`}
+        className={cn(
+          "tabular-nums",
+          strong ? "text-xl font-extrabold" : "text-sm font-semibold",
+          tone === "accent" && "text-accent-fg",
+        )}
       >
         {value}
       </dd>

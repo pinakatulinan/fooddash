@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { friendlyError } from "@/lib/utils";
+import { friendlyError, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { formatManilaTime } from "@/lib/format";
 
@@ -82,50 +82,64 @@ export function PauseStoreControl({
     router.refresh();
   }
 
-  if (isPaused) {
-    return (
-      <div className="space-y-2 rounded-md border border-line bg-surface p-4">
-        <p className="text-sm">
-          <span className="font-semibold">This store is not taking orders right now.</span>
-          {pausedUntil && <> Reopens automatically around {formatManilaTime(pausedUntil)}.</>}
-          {pauseReason && <span className="block text-fg-muted">Reason: {pauseReason}</span>}
-        </p>
-        <Button size="sm" loading={pending} onClick={resume}>
-          Resume now
-        </Button>
-        {error && (
-          <p role="alert" className="text-sm font-medium text-danger">
-            {error}
-          </p>
+  return (
+    <div className="space-y-2">
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 rounded-[18px] py-2.5 pr-2 pl-4",
+          isPaused ? "bg-danger-tint" : "bg-mint-pastel",
+        )}
+      >
+        <span className={cn("flex items-center gap-2 text-sm font-bold", isPaused ? "text-danger" : "text-accent-fg")}>
+          <span aria-hidden className={cn("size-2 shrink-0 rounded-pill", isPaused ? "bg-danger" : "bg-accent-fg")} />
+          {isPaused ? "Not accepting orders" : "Accepting orders"}
+        </span>
+        {isPaused ? (
+          <button
+            type="button"
+            onClick={resume}
+            disabled={pending}
+            className="shrink-0 rounded-pill bg-card px-3 py-1.5 text-xs font-bold text-danger disabled:opacity-60"
+          >
+            {pending ? "…" : "Resume"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowOptions((v) => !v)}
+            className="shrink-0 rounded-pill bg-card px-3 py-1.5 text-xs font-bold text-accent-fg"
+          >
+            Pause
+          </button>
         )}
       </div>
-    );
-  }
 
-  if (!showOptions) {
-    return (
-      <Button size="sm" variant="secondary" onClick={() => setShowOptions(true)}>
-        Pause store
-      </Button>
-    );
-  }
+      {isPaused && (pausedUntil || pauseReason) && (
+        <p className="px-1 text-xs text-fg-muted">
+          {pausedUntil && <>Reopens automatically around {formatManilaTime(pausedUntil)}. </>}
+          {pauseReason && <>Reason: {pauseReason}</>}
+        </p>
+      )}
 
-  return (
-    <div className="space-y-2 rounded-md border border-line bg-surface p-4">
-      <p className="text-sm font-semibold">How long?</p>
-      <div className="flex flex-wrap gap-2">
-        {QUICK_DURATIONS.map((d) => (
-          <Button key={d.minutes} size="sm" variant="secondary" loading={pending} onClick={() => pause(d.minutes)}>
-            {d.label}
-          </Button>
-        ))}
-        <Button size="sm" variant="danger" loading={pending} onClick={() => pause(null)}>
-          Until I resume it
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => setShowOptions(false)}>
-          Cancel
-        </Button>
-      </div>
+      {!isPaused && showOptions && (
+        <div className="space-y-2 rounded-2xl bg-cream p-3.5">
+          <p className="text-sm font-semibold">How long?</p>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_DURATIONS.map((d) => (
+              <Button key={d.minutes} size="sm" variant="secondary" loading={pending} onClick={() => pause(d.minutes)}>
+                {d.label}
+              </Button>
+            ))}
+            <Button size="sm" variant="danger" loading={pending} onClick={() => pause(null)}>
+              Until I resume it
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowOptions(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       {error && (
         <p role="alert" className="text-sm font-medium text-danger">
           {error}

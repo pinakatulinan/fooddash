@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, History, Receipt, ShoppingBag } from "lucide-react";
+import { Receipt } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { SetupNotice } from "@/components/setup-notice";
-import { ScreenHeader } from "@/components/ui/screen-header";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
-import { OrderStatusPill } from "@/components/ui/status-pill";
+import { OrdersTabs } from "@/components/customer/orders-tabs";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
-import { OrderHistoryCard, type OrderHistoryRow } from "@/components/customer/order-history-card";
-import { isLive } from "@/lib/domain/order-status";
-import { formatCentavos, formatManilaDate, formatRelative } from "@/lib/format";
-import type { OrderStatus } from "@/lib/types/domain";
+import { DELIVERY_TIMELINE, ORDER_STATUS, PICKUP_TIMELINE } from "@/lib/domain/order-status";
+import { cn } from "@/lib/utils";
+import type { OrderStatus, OrderType } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Your orders" };
 
-const RECENT_PAST_COUNT = 5;
 const IN_PROGRESS_STATUSES = [
   "draft",
   "pending_payment",
@@ -34,40 +30,33 @@ interface Row {
   id: string;
   code: string;
   status: OrderStatus;
+  type: OrderType;
   total_centavos: number;
-  created_at: string;
-  placed_at: string | null;
+  promised_at: string | null;
   merchants: { name: string; logo_url: string | null } | null;
+  order_items: { id: string }[];
 }
 
-const SELECT = "id, code, status, total_centavos, created_at, placed_at, merchants(name, logo_url)";
-// Richer than SELECT: the past-orders card shows what was ordered and a
-// photo, which the in-progress list has no need for.
-const PAST_SELECT =
-  "id, code, status, total_centavos, created_at, delivered_at, cancelled_at, " +
-  "merchants(name, cover_url), order_items(name_snapshot, quantity)";
+const SELECT = "id, code, status, type, total_centavos, promised_at, merchants(name, logo_url), order_items(id)";
 
-export default async function OrdersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
+/** Kept out of the component body deliberately - reading the clock during
+    render is impure, and the React compiler is right to complain about it
+    even here where the component only ever runs once per request. */
+function minutesUntil(iso: string): number {
+  return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 60000));
+}
+
+export default async function OrdersPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
-
-  const { page: pageParam } = await searchParams;
-  const pastPage = Math.max(1, Number(pageParam) || 1);
-  const pastOffset = (pastPage - 1) * RECENT_PAST_COUNT;
 
   const supabase = await createClient();
   const { user } = await getCurrentUser();
 
-  // RLS restricts both to the caller's own orders. Two targeted queries
-  // instead of one big one filtered client-side: "in progress" is whatever
-  // is actually still moving (never large in practice), and "past orders"
-  // only ever pages through five at a time here - the full search view
-  // lives on its own page (orders/history), same split as the merchant
-  // orders console.
-  const [{ data: activeData }, { data: pastData, count: pastCount }] = await Promise.all([
+  // RLS restricts both to the caller's own orders. The "Past" count here is
+  // head-only - just enough to know whether this account has ever ordered,
+  // not to render anything - the actual past list lives on /orders/history
+  // behind the Past tab.
+  const [{ data: activeData }, { count: pastCount }] = await Promise.all([
     supabase
       .from("orders")
       .select(SELECT)
@@ -75,150 +64,92 @@ export default async function OrdersPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("orders")
-      .select(PAST_SELECT, { count: "exact" })
-      .in("status", PAST_STATUSES)
-      .order("created_at", { ascending: false })
-      .range(pastOffset, pastOffset + RECENT_PAST_COUNT - 1),
+      .select("id", { count: "exact", head: true })
+      .in("status", PAST_STATUSES),
   ]);
 
   const active = (activeData ?? []) as unknown as Row[];
-  const past = (pastData ?? []) as unknown as OrderHistoryRow[];
-  const pastTotal = pastCount ?? 0;
-  const pastTotalPages = Math.max(1, Math.ceil(pastTotal / RECENT_PAST_COUNT));
-  const totalCount = active.length + pastTotal;
+  const totalCount = active.length + (pastCount ?? 0);
 
   return (
     <>
       {user && <RealtimeRefresh table="orders" filter={`customer_id=eq.${user.id}`} />}
-      <ScreenHeader
-        title="Your orders"
-        subtitle={`${totalCount} in total`}
-        titleClassName="font-bold"
-        actions={
-          user && (
-            <Link
-              href="/cart"
-              aria-label="Your cart"
-              className="relative grid size-10 place-items-center rounded-pill hover:bg-white/15"
-            >
-              <ShoppingBag aria-hidden className="size-5" />
-            </Link>
-          )
-        }
-      />
 
-      <div className="space-y-8 px-4 py-6">
-        {totalCount === 0 ? (
-          <EmptyState
-            icon={<Receipt className="size-6" />}
-            title="No orders yet"
-            description="When you order, you will be able to track it here and reorder in one tap."
-            action={<LinkButton href="/">Find something to eat</LinkButton>}
-          />
-        ) : (
-          <>
-            <OrderList heading="In progress" orders={active} empty="Nothing in progress right now" />
-
-            <section aria-labelledby="past-orders">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 id="past-orders" className="text-sm font-bold tracking-wide text-fg-muted uppercase">
-                  Past orders
-                </h2>
-                {pastTotal > 0 && (
-                  <LinkButton href="/orders/history" size="sm" variant="secondary">
-                    <History aria-hidden className="size-3.5" /> Full history
-                  </LinkButton>
-                )}
-              </div>
-
-              {past.length === 0 ? null : (
-                <>
-                  <ul className="space-y-2">
-                    {past.map((order) => (
-                      <li key={order.id}>
-                        <OrderHistoryCard order={order} />
-                      </li>
-                    ))}
-                  </ul>
-
-                  {pastTotalPages > 1 && (
-                    <div className="mt-3 flex items-center justify-center gap-1">
-                      {pastPage > 1 ? (
-                        <Link
-                          href={`/orders?page=${pastPage - 1}`}
-                          aria-label="Previous orders"
-                          className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
-                        >
-                          <ChevronLeft aria-hidden className="size-4" />
-                        </Link>
-                      ) : (
-                        <span className="size-8" aria-hidden />
-                      )}
-                      <span className="px-2 text-xs font-medium text-fg-muted">
-                        Page {pastPage} of {pastTotalPages}
-                      </span>
-                      {pastPage < pastTotalPages ? (
-                        <Link
-                          href={`/orders?page=${pastPage + 1}`}
-                          aria-label="Next orders"
-                          className="grid size-8 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
-                        >
-                          <ChevronRight aria-hidden className="size-4" />
-                        </Link>
-                      ) : (
-                        <span className="size-8" aria-hidden />
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </section>
-          </>
-        )}
+      <div className="px-5 pt-3 pb-3">
+        <h1 className="text-[26px] font-extrabold tracking-[-0.01em]">Orders</h1>
       </div>
+
+      {totalCount === 0 ? (
+        <EmptyState
+          icon={<Receipt className="size-6" />}
+          title="No orders yet"
+          description="When you order, you will be able to track it here and reorder in one tap."
+          action={<LinkButton href="/">Find something to eat</LinkButton>}
+        />
+      ) : (
+        <div className="space-y-5 px-5 pb-6">
+          <OrdersTabs active="active" activeCount={active.length} />
+
+          {active.length === 0 ? (
+            <p className="py-6 text-center text-sm text-fg-muted">Nothing in progress right now.</p>
+          ) : (
+            <ul className="space-y-2.5">
+              {active.map((order) => (
+                <ActiveOrderCard key={order.id} order={order} />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </>
   );
 }
 
-function OrderList({ heading, orders, empty }: { heading: string; orders: Row[]; empty: string }) {
-  return (
-    <section aria-labelledby="in-progress">
-      <h2 id="in-progress" className="mb-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-        {heading}
-      </h2>
-      {orders.length === 0 ? (
-        <p className="text-sm text-fg-muted">{empty}</p>
-      ) : (
-        <ul className="space-y-2">
-          {orders.map((order) => (
-            <OrderRow key={order.id} order={order} />
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
+function ActiveOrderCard({ order }: { order: Row }) {
+  const steps = order.type === "pickup" ? PICKUP_TIMELINE : DELIVERY_TIMELINE;
+  const currentIndex = steps.indexOf(order.status);
+  const eta = order.promised_at ? minutesUntil(order.promised_at) : null;
 
-function OrderRow({ order }: { order: Row }) {
   return (
     <li>
-      <Card interactive>
-        <Link href={`/orders/${order.id}`} className="flex items-center gap-4 p-4">
+      <Link href={`/orders/${order.id}`} className="block rounded-[22px] bg-fg p-4 text-white">
+        <div className="flex items-center gap-3.5">
+          {order.merchants?.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={order.merchants.logo_url} alt="" className="size-11 shrink-0 rounded-pill object-cover" />
+          ) : (
+            <div className="size-11 shrink-0 rounded-pill bg-white/15" />
+          )}
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold">{order.merchants?.name ?? "Store"}</span>
-              <OrderStatusPill status={order.status} audience="customer" />
-            </div>
-            <p className="mt-1 font-mono text-xs text-fg-muted">
-              {order.code} ·{" "}
-              {isLive(order.status)
-                ? formatRelative(order.placed_at ?? order.created_at)
-                : formatManilaDate(order.created_at)}
+            <p className="truncate text-[15px] font-bold">{order.merchants?.name ?? "Store"}</p>
+            <p className="mt-0.5 font-mono text-xs text-white/75">
+              {order.code} · {order.order_items.length} items
             </p>
           </div>
-          <p className="shrink-0 font-bold tabular-nums">{formatCentavos(order.total_centavos)}</p>
-        </Link>
-      </Card>
+          {eta != null && (
+            <div className="shrink-0 text-right">
+              <p className="text-xl font-extrabold tabular-nums">
+                {eta}
+                <span className="text-xs font-semibold"> min</span>
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3.5 flex gap-1">
+          {steps.map((step, i) => (
+            <span
+              key={step}
+              aria-hidden
+              className={cn(
+                "h-1.25 flex-1 rounded-[3px]",
+                i < currentIndex ? "bg-mint-mark" : i === currentIndex ? "bg-primary" : "bg-[#3A3A3A]",
+              )}
+            />
+          ))}
+        </div>
+        <p className="mt-2 text-[13px] font-medium text-white/85">{ORDER_STATUS[order.status].customer}</p>
+      </Link>
     </li>
   );
 }

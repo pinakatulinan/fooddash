@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { LinkButton } from "@/components/ui/button";
@@ -15,17 +14,21 @@ type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>["user"];
     redundant chrome stacked above it. */
 const HIDDEN_ON = new Set(["/", "/search", "/orders", "/account", "/favorites", "/cart", "/checkout"]);
 /** Same idea, but for a dynamic segment ("/store/[slug]") rather than one
-    fixed path - matched by prefix instead of exact equality. */
-const HIDDEN_ON_PREFIX = ["/store/"];
+    fixed path - matched by prefix instead of exact equality. "/orders/"
+    covers both the history list and a single order's tracking page, whose
+    map fills the space this bar would otherwise sit in. */
+const HIDDEN_ON_PREFIX = ["/store/", "/orders/", "/account/"];
 
 /**
  * The white top bar for every customer page except the ones matched above.
- * "/" folds the logo away and puts these same notification and cart
- * controls into its own coral hero instead, so they never appear twice;
- * "/search", "/orders", "/account", "/favorites", "/cart", "/checkout" and
- * every "/store/*" page drop them entirely - their own heroes have no room
- * for them (a store page puts a map-pin and a favorite toggle there instead
- * - see StoreHeaderActions).
+ * "/" folds the logo away and puts its own notification controls into its
+ * own coral hero instead, so they never appear twice; "/search", "/orders",
+ * "/account", "/favorites", "/cart", "/checkout" and every "/store/*" page
+ * drop them entirely - their own heroes have no room for them (a store page
+ * puts a map-pin and a favorite toggle there instead - see
+ * StoreHeaderActions). No cart icon here at all any more: the floating
+ * bottom nav's raised cart button (app-nav.tsx) is visible on every one of
+ * these pages already, so a second one here would just be a duplicate.
  */
 export function CustomerTopBar({ user }: { user: CurrentUser }) {
   const pathname = usePathname();
@@ -40,16 +43,7 @@ export function CustomerTopBar({ user }: { user: CurrentUser }) {
           <Logo height={65} />
         </Link>
         {user ? (
-          <div className="flex items-center gap-1">
-            <NotificationBell surface="customer" />
-            <Link
-              href="/cart"
-              aria-label="Your cart"
-              className="relative grid size-10 place-items-center rounded-pill hover:bg-surface-raised"
-            >
-              <ShoppingBag aria-hidden className="size-5" />
-            </Link>
-          </div>
+          <NotificationBell surface="customer" />
         ) : (
           <LinkButton href="/login" size="sm" variant="secondary">
             Sign in

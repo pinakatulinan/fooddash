@@ -7,22 +7,13 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
 import { FavoritesList } from "@/components/customer/favorites-list";
+import type { FavoriteMerchant } from "@/components/customer/favorite-merchant-card";
 
 export const metadata: Metadata = { title: "Favorites" };
 
 interface FavoriteRow {
   merchant_id: string;
-  merchants: {
-    id: string;
-    slug: string;
-    name: string;
-    tagline: string | null;
-    cover_url: string | null;
-    city: string | null;
-    barangay: string | null;
-    rating_avg: number;
-    rating_count: number;
-  } | null;
+  merchants: Omit<FavoriteMerchant, "is_open"> | null;
 }
 
 export default async function FavoritesPage() {
@@ -48,19 +39,32 @@ export default async function FavoritesPage() {
   const { data } = await supabase
     .from("favorites")
     .select(
-      "merchant_id, merchants(id, slug, name, tagline, cover_url, city, barangay, rating_avg, rating_count)",
+      "merchant_id, merchants(id, slug, name, tagline, cover_url, city, barangay, rating_avg, rating_count, prep_time_minutes)",
     )
     .eq("customer_id", user.id)
     .not("merchant_id", "is", null)
     .order("created_at", { ascending: false });
 
-  const favorites = ((data ?? []) as unknown as FavoriteRow[]).filter((f) => f.merchants != null);
+  const rows = ((data ?? []) as unknown as FavoriteRow[]).filter((f) => f.merchants != null);
+
+  // One RPC per favorite rather than guessing from a distance-radius list -
+  // open/closed is exact this way, and a favorites list is a handful of
+  // stores, not hundreds, so the parallel fan-out stays cheap.
+  const favorites: FavoriteMerchant[] = await Promise.all(
+    rows.map(async (f) => {
+      const { data: isOpen } = await supabase.rpc("is_merchant_open", { p_merchant_id: f.merchants!.id });
+      return { ...f.merchants!, is_open: Boolean(isOpen) };
+    }),
+  );
 
   return (
     <>
-      <ScreenHeader title="Favorites" subtitle={`${favorites.length} saved`} titleClassName="font-bold" />
+      <ScreenHeader
+        title="Favorites"
+        subtitle={`${favorites.length} saved kitchen${favorites.length === 1 ? "" : "s"}`}
+      />
 
-      <div className="px-4 py-6">
+      <div className="px-5 pb-6">
         {favorites.length === 0 ? (
           <EmptyState
             icon={<Heart className="size-6" />}
@@ -69,7 +73,7 @@ export default async function FavoritesPage() {
             action={<LinkButton href="/">Find something to eat</LinkButton>}
           />
         ) : (
-          <FavoritesList merchants={favorites.map((f) => f.merchants!)} />
+          <FavoritesList merchants={favorites} />
         )}
       </div>
     </>

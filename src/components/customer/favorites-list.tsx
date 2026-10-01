@@ -25,11 +25,12 @@ export function FavoritesList({ merchants }: { merchants: FavoriteMerchant[] }) 
   }
 
   return (
-    <ul className="space-y-2">
-      {items.map((m) => (
-        <li key={m.id}>
+    <ul className="grid grid-cols-2 gap-3">
+      {items.map((m, i) => (
+        <li key={m.id} className={i === 0 ? "col-span-2" : undefined}>
           <FavoriteMerchantCard
             merchant={m}
+            hero={i === 0}
             onRemoved={() => setItems((prev) => prev.filter((x) => x.id !== m.id))}
           />
         </li>

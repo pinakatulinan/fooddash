@@ -16,16 +16,20 @@ import { cn } from "@/lib/utils";
  * thumb while holding a bag.
  */
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "mint";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "danger-soft" | "mint";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-primary text-primary-fg hover:bg-primary-hover active:brightness-95 shadow-sm",
-  secondary:
-    "bg-card text-fg border border-line hover:bg-coral-tint hover:border-primary/40",
+  // Tinted, not bordered - coral-tint fill reads as "secondary action" on
+  // the cream ground the way a white-on-white bordered button cannot.
+  secondary: "bg-coral-tint text-primary rounded-xl hover:brightness-95",
   ghost: "bg-transparent text-fg hover:bg-surface-raised",
   danger: "bg-danger text-white hover:brightness-110",
+  // The soft counterpart to `danger` - a cancel/remove action that should
+  // read as "available" rather than "alarming" until it's actually pressed.
+  "danger-soft": "bg-danger-tint text-danger hover:brightness-95",
   // Mint is a status colour, not an action colour. This variant exists for the
   // rare confirming action that sits inside a success context.
   mint: "bg-accent text-accent-fg hover:brightness-95",
@@ -34,7 +38,9 @@ const VARIANTS: Record<Variant, string> = {
 const SIZES: Record<Size, string> = {
   sm: "h-9 px-3.5 text-sm gap-1.5 rounded-sm",
   md: "h-11 px-5 text-base gap-2 rounded-md",
-  lg: "h-13 px-6 text-base gap-2.5 rounded-md",
+  // h-14, not h-13 (52px): the mobile refresh's primary CTA is 56px with a
+  // coral-tinted drop shadow, not just a taller version of `md`.
+  lg: "h-14 px-6 text-base font-bold gap-2.5 rounded-[18px] shadow-cta",
 };
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

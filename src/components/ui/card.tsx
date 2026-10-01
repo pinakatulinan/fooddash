@@ -2,10 +2,11 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Cards are white on white. The palette gives no second background, so
- * separation comes from a 1px #E2E2E2 border plus a very soft shadow - not
- * from a grey fill, which would fight the coral and mint surfaces sitting
- * beside it.
+ * White cards on a warm cream ground (mobile refresh) - separation comes
+ * from a soft warm-tinted shadow, not a border, now that there's an actual
+ * second background to show against. `border-0` is explicit, not just an
+ * omission: the global `* { border-color: var(--line) }` rule still sets a
+ * colour on any border a className adds, it just doesn't add one itself.
  */
 export function Card({
   className,
@@ -15,9 +16,9 @@ export function Card({
   return (
     <div
       className={cn(
-        "bg-card border border-line rounded-lg shadow-card overflow-hidden",
+        "bg-card border-0 rounded-[20px] shadow-card overflow-hidden",
         interactive &&
-          "transition-[box-shadow,transform] duration-150 hover:shadow-pop focus-within:shadow-pop active:scale-[0.985] cursor-pointer",
+          "transition-[box-shadow,transform] duration-150 hover:shadow-tile focus-within:shadow-tile active:scale-[0.985] cursor-pointer",
         className,
       )}
       {...props}

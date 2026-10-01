@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { friendlyError, cn } from "@/lib/utils";
@@ -19,9 +19,12 @@ import type { MenuOptionGroup } from "@/lib/types/domain";
  * client to police beyond a friendlier "pick one" nudge before submitting.
  *
  * `add_to_cart` does not merge repeat calls into one line: each call inserts a
- * new cart_items row. That is why quantity is chosen up front rather than
- * incremented by re-clicking "Add" — the alternative would quietly create a
- * cart with five separate one-quantity lines of the same dish.
+ * new cart_items row. That is why quantity is chosen up front for a grouped
+ * item rather than incremented by re-clicking "Add" — the alternative would
+ * quietly create a cart with five separate one-quantity lines of the same
+ * dish. A simple (ungrouped) item sidesteps this entirely once it has a
+ * `cartLine`: from then on, +/- edit that one existing row's quantity
+ * directly (see `changeLine`) instead of calling `add_to_cart` again.
  */
 
 interface Item {
@@ -32,7 +35,19 @@ interface Item {
   option_groups: MenuOptionGroup[];
 }
 
-export function AddToCartControl({ item, compact = false }: { item: Item; compact?: boolean }) {
+export function AddToCartControl({
+  item,
+  compact = false,
+  cartLine = null,
+}: {
+  item: Item;
+  compact?: boolean;
+  /** The customer's existing cart_items row for this exact menu item, if
+      any - only meaningful (and only passed) for the compact, ungrouped
+      case. Its presence is what flips the control from a plain "+" into a
+      quantity stepper. */
+  cartLine?: { id: string; quantity: number } | null;
+}) {
   const router = useRouter();
   const groups = item.option_groups ?? [];
   const hasGroups = groups.length > 0;
@@ -54,7 +69,6 @@ export function AddToCartControl({ item, compact = false }: { item: Item; compac
   const [notes, setNotes] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [justAdded, setJustAdded] = React.useState(false);
 
   if (!item.is_available) return null;
 
@@ -139,99 +153,88 @@ export function AddToCartControl({ item, compact = false }: { item: Item; compac
       return;
     }
 
-    setJustAdded(true);
     setQuantity(1);
     setNotes("");
     router.refresh();
     notifyCartChanged();
-    window.setTimeout(() => setJustAdded(false), 1800);
     if (hasGroups) setExpanded(false);
   }
 
-  // A simple item with no choices to make: a stepper and one button, no panel.
-  // `compact` is the same control, just folded into a small floating cluster
-  // for the image-corner placement (see MenuSection) instead of a full row.
-  if (!hasGroups) {
-    if (compact) {
+  /** Edits an existing simple-item line directly - same RLS-backed pattern
+      as CartItemQuantity on the cart page itself, not a second RPC. Dropping
+      to 0 removes the row rather than leaving a zero-quantity line behind. */
+  async function changeLine(next: number) {
+    if (!cartLine || submitting) return;
+    setSubmitting(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: dbError } =
+      next < 1
+        ? await supabase.from("cart_items").delete().eq("id", cartLine.id)
+        : await supabase.from("cart_items").update({ quantity: next }).eq("id", cartLine.id);
+
+    setSubmitting(false);
+    if (dbError) {
+      setError(friendlyError(dbError));
+      return;
+    }
+    router.refresh();
+    notifyCartChanged();
+  }
+
+  // A simple item with no choices to make: no panel, just a quick add. The
+  // `compact` cluster rides the corner of the item's image (see MenuSection).
+  if (!hasGroups && compact) {
+    if (!cartLine) {
       return (
         <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-1 rounded-pill border border-line bg-card p-1 shadow-card">
-            <button
-              type="button"
-              aria-label="Decrease quantity"
-              onClick={() => setQuantity((v) => Math.max(1, v - 1))}
-              disabled={quantity <= 1}
-              className="grid size-6 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised disabled:opacity-30"
-            >
-              <Minus aria-hidden className="size-3" />
-            </button>
-            <span className="w-4 text-center text-xs font-bold tabular-nums">{quantity}</span>
-            <button
-              type="button"
-              aria-label="Increase quantity"
-              onClick={() => setQuantity((v) => Math.min(20, v + 1))}
-              className="grid size-6 place-items-center rounded-pill text-fg-muted hover:bg-surface-raised"
-            >
-              <Plus aria-hidden className="size-3" />
-            </button>
-            <button
-              type="button"
-              aria-label="Add to cart"
-              onClick={handleAdd}
-              disabled={submitting}
-              className="ml-0.5 grid size-7 place-items-center rounded-pill bg-primary text-primary-fg transition-transform active:scale-90 disabled:opacity-60"
-            >
-              {justAdded ? <Check aria-hidden className="size-3.5" /> : <Plus aria-hidden className="size-3.5" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            aria-label={`Add ${item.name}`}
+            onClick={handleAdd}
+            disabled={submitting}
+            className="grid size-9 place-items-center rounded-full border-[3px] border-white bg-primary text-primary-fg shadow-fab transition-transform active:scale-90 disabled:opacity-60"
+          >
+            <Plus aria-hidden className="size-4" />
+          </button>
           {error && <p role="alert" className="max-w-32 text-right text-xs text-danger">{error}</p>}
         </div>
       );
     }
 
     return (
-      <div className="flex shrink-0 items-center gap-2">
-        <Stepper value={quantity} onChange={setQuantity} />
-        <Button
-          size="sm"
-          onClick={handleAdd}
-          loading={submitting}
-          className="min-w-24"
-        >
-          {justAdded ? (
-            <>
-              <Check aria-hidden className="size-4" /> Added
-            </>
-          ) : (
-            "Add"
-          )}
-        </Button>
-        {error && (
-          <p role="alert" className="text-xs text-danger">
-            {error}
-          </p>
-        )}
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-1 rounded-pill border-[1.5px] border-line-warm bg-card p-1 shadow-card">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
+            onClick={() => changeLine(cartLine.quantity - 1)}
+            disabled={submitting}
+            className="grid size-7 place-items-center rounded-pill bg-coral-tint text-primary disabled:opacity-50"
+          >
+            <Minus aria-hidden className="size-3.5" />
+          </button>
+          <span className="w-5 text-center text-sm font-bold tabular-nums">{cartLine.quantity}</span>
+          <button
+            type="button"
+            aria-label="Increase quantity"
+            onClick={() => changeLine(cartLine.quantity + 1)}
+            disabled={submitting || cartLine.quantity >= 99}
+            className="grid size-7 place-items-center rounded-pill bg-primary text-primary-fg disabled:opacity-50"
+          >
+            <Plus aria-hidden className="size-3.5" />
+          </button>
+        </div>
+        {error && <p role="alert" className="max-w-32 text-right text-xs text-danger">{error}</p>}
       </div>
     );
   }
 
   return (
     <div className="w-full">
-      <Button
-        variant={expanded ? "secondary" : "primary"}
-        size="sm"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-      >
-        {justAdded ? (
-          <>
-            <Check aria-hidden className="size-4" /> Added
-          </>
-        ) : expanded ? (
-          "Cancel"
-        ) : (
-          "Add to cart"
-        )}
+      <Button variant={expanded ? "secondary" : "primary"} size="sm" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}>
+        {expanded ? "Cancel" : "Add to cart"}
       </Button>
 
       {expanded && (
