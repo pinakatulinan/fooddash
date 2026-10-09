@@ -38,6 +38,11 @@ export function requireServiceRoleKey(): string {
   return key;
 }
 
+/** CARTO's free basemap-tile key. Empty is a valid state - tiles still load
+    without one, just with a visible "API KEY REQUIRED" watermark baked into
+    the image (see carto-tiles.ts), so there is nothing to throw on here. */
+export const mapsApiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY ?? "";
+
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");

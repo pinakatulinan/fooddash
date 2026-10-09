@@ -3,6 +3,8 @@
 import * as React from "react";
 import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap, Marker as LeafletMarker, Polyline as LeafletPolyline } from "leaflet";
+import { cn } from "@/lib/utils";
+import { CARTO_ATTRIBUTION, CARTO_TILE_URL } from "@/lib/maps/carto-tiles";
 
 interface Point {
   lat: number;
@@ -47,6 +49,7 @@ export function OrderTrackingMap({
   dropoff,
   rider,
   highlightTarget,
+  className,
 }: {
   merchant: Point & { name: string };
   dropoff: Point | null;
@@ -55,6 +58,10 @@ export function OrderTrackingMap({
    * shows the straight-line distance, so "which way do I go" doesn't require
    * a directions provider this project doesn't have configured. */
   highlightTarget?: "merchant" | "dropoff";
+  /** Overrides the default compact-card sizing (h-56, rounded, bordered) -
+   * the customer tracking page's full-bleed hero map needs to fill its own
+   * container edge-to-edge instead. */
+  className?: string;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<LeafletMap | null>(null);
@@ -76,18 +83,7 @@ export function OrderTrackingMap({
       const map = L.map(containerRef.current, { zoomControl: false });
       mapRef.current = map;
 
-      // CARTO's free "Voyager" basemap (no key) instead of raw OSM tiles -
-      // muted enough that the coral pins and route line stay the thing your
-      // eye lands on. Always the light set: the app is pinned to light mode
-      // (data-theme="light" in the root layout) regardless of device
-      // preference, so a prefers-color-scheme check here would pick a dark
-      // basemap under an otherwise all-light app on a device set to dark
-      // mode - which is exactly the mismatch this used to produce.
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution:
-          '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 20,
-      }).addTo(map);
+      L.tileLayer(CARTO_TILE_URL, { attribution: CARTO_ATTRIBUTION, maxZoom: 20 }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
       const pin = (emoji: string, size: number) =>
@@ -185,10 +181,10 @@ export function OrderTrackingMap({
   }, [rider, target]);
 
   return (
-    <div className="relative">
+    <div className="relative size-full">
       <div
         ref={containerRef}
-        className="h-56 w-full overflow-hidden rounded-md border border-line bg-surface-raised"
+        className={cn("h-56 w-full overflow-hidden rounded-md border border-line bg-surface-raised", className)}
         aria-label={rider ? `Live map showing ${rider.first_name}'s location` : "Map showing the store and delivery address"}
       />
       {target && distanceLabel && (

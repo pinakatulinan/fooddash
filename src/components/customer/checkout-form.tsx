@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Banknote, CreditCard, MapPin, Plus, Smartphone, Ticket } from "lucide-react";
+import { Banknote, MapPin, Plus, Smartphone, Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyError, cn } from "@/lib/utils";
 import { Button, LinkButton } from "@/components/ui/button";
@@ -21,11 +21,15 @@ interface AddressOption {
 
 const TIP_PRESETS_CENTAVOS = [0, 2000, 3000, 5000];
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof Banknote }[] = [
-  { value: "cod", label: "Cash on delivery", icon: Banknote },
-  { value: "gcash", label: "GCash", icon: Smartphone },
-  { value: "maya", label: "Maya", icon: Smartphone },
-  { value: "card", label: "Card", icon: CreditCard },
+// Digital payment methods are wired up end to end (PayMongo checkout,
+// webhook, reconciliation) but turned off here for now - cash on delivery
+// only, until that's ready to go live. Left in the list rather than removed
+// so turning one back on is a one-line `available` flip, not re-deriving
+// this table from scratch.
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof Banknote; available: boolean }[] = [
+  { value: "cod", label: "Cash on delivery", icon: Banknote, available: true },
+  { value: "gcash", label: "GCash", icon: Smartphone, available: false },
+  { value: "maya", label: "Maya", icon: Smartphone, available: false },
 ];
 
 export function CheckoutForm({
@@ -191,10 +195,11 @@ export function CheckoutForm({
             const active = paymentMethod === m.value;
             const Icon = m.icon;
             return (
-              <label key={m.value}>
+              <label key={m.value} className={!m.available ? "cursor-not-allowed" : undefined}>
                 <div
                   className={cn(
-                    "flex cursor-pointer items-center gap-2.5 rounded-[18px] border-2 bg-card p-3 transition-colors",
+                    "relative flex items-center gap-2.5 rounded-[18px] border-2 bg-card p-3 transition-colors",
+                    m.available ? "cursor-pointer" : "opacity-50",
                     active ? "border-primary bg-coral-tint" : "border-line-warm",
                   )}
                 >
@@ -203,9 +208,15 @@ export function CheckoutForm({
                     name="payment-method"
                     value={m.value}
                     checked={active}
-                    onChange={() => setPaymentMethod(m.value)}
+                    disabled={!m.available}
+                    onChange={() => m.available && setPaymentMethod(m.value)}
                     className="sr-only"
                   />
+                  {!m.available && (
+                    <span className="absolute -top-2 right-2 rounded-pill bg-fg px-2 py-0.5 text-[10px] font-bold text-white">
+                      Coming soon
+                    </span>
+                  )}
                   <span
                     className={cn(
                       "grid size-8 shrink-0 place-items-center rounded-full",

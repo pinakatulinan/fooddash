@@ -129,8 +129,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 ? { lat: t.rider.lat, lng: t.rider.lng, first_name: t.rider.first_name }
                 : null
             }
+            className="h-full rounded-none border-0"
           />
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 py-2.5">
+          {/* z-1001: strictly above Leaflet's own .leaflet-top/.leaflet-bottom
+              controls (z-index 1000 in leaflet.css) - without this, the
+              zoom control painted over this back button and order-code chip
+              despite coming later in the DOM, since neither OrderTrackingMap
+              nor this wrapper establishes a stacking context of its own. */}
+          <div className="absolute inset-x-0 top-0 z-1001 flex items-center justify-between px-5 py-2.5">
             <Link
               href="/orders"
               aria-label="Back to orders"

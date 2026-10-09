@@ -3,6 +3,7 @@
 import * as React from "react";
 import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap } from "leaflet";
+import { CARTO_ATTRIBUTION, CARTO_TILE_URL } from "@/lib/maps/carto-tiles";
 
 /**
  * A single pin on a map - the store page's "where is this place" view.
@@ -29,14 +30,9 @@ export function MerchantLocationMap({ lat, lng, name }: { lat: number; lng: numb
       const map = L.map(containerRef.current, { zoomControl: false }).setView([lat, lng], 16);
       mapRef.current = map;
 
-      // Same CARTO Voyager basemap as OrderTrackingMap - always the light
-      // set, since the app is pinned to light mode regardless of device
-      // preference.
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution:
-          '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 20,
-      }).addTo(map);
+      // Same shared CARTO Voyager basemap as OrderTrackingMap - see
+      // lib/maps/carto-tiles.ts.
+      L.tileLayer(CARTO_TILE_URL, { attribution: CARTO_ATTRIBUTION, maxZoom: 20 }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
       L.marker([lat, lng], {
