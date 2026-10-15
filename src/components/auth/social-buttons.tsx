@@ -16,6 +16,11 @@ import { friendlyError } from "@/lib/utils";
  * Supabase returns a clear "provider not enabled" error rather than the
  * button silently doing nothing.
  */
+// Facebook login is wired up but hidden: Meta now gates the `email` scope
+// behind Business Verification, which needs real business documents (DTI/SEC)
+// this project doesn't have yet. Flip back to true once that's sorted.
+const FACEBOOK_LOGIN_ENABLED = false;
+
 export function SocialButtons() {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<"google" | "facebook" | null>(null);
@@ -37,7 +42,7 @@ export function SocialButtons() {
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className={FACEBOOK_LOGIN_ENABLED ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
         <button
           type="button"
           onClick={() => signInWith("google")}
@@ -51,19 +56,21 @@ export function SocialButtons() {
           )}
           Google
         </button>
-        <button
-          type="button"
-          onClick={() => signInWith("facebook")}
-          disabled={loading !== null}
-          className="flex h-12.5 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-line-warm bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
-        >
-          {loading === "facebook" ? (
-            <Loader2 aria-hidden className="size-4.5 animate-spin" />
-          ) : (
-            <FacebookGlyph className="size-4.5" />
-          )}
-          Facebook
-        </button>
+        {FACEBOOK_LOGIN_ENABLED && (
+          <button
+            type="button"
+            onClick={() => signInWith("facebook")}
+            disabled={loading !== null}
+            className="flex h-12.5 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-line-warm bg-card text-sm font-semibold text-fg transition-transform active:scale-[0.97] disabled:opacity-60"
+          >
+            {loading === "facebook" ? (
+              <Loader2 aria-hidden className="size-4.5 animate-spin" />
+            ) : (
+              <FacebookGlyph className="size-4.5" />
+            )}
+            Facebook
+          </button>
+        )}
       </div>
       {error && (
         <p role="alert" className="mt-2 text-xs font-medium text-danger">
