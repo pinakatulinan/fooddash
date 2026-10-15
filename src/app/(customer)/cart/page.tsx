@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
 import { CartItemQuantity } from "@/components/customer/cart-item-quantity";
 import { formatCentavos, formatDelta } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn, friendlyError } from "@/lib/utils";
 import type { CartQuote } from "@/lib/types/domain";
 
 export const metadata: Metadata = { title: "Your cart" };
@@ -78,7 +78,7 @@ export default async function CartPage() {
       <div className="space-y-5 px-5 pt-1 pb-44">
         {error && (
           <p role="alert" className="rounded-2xl bg-danger-tint px-4 py-3 text-sm text-danger">
-            {error.message}
+            {friendlyError(error)}
           </p>
         )}
 

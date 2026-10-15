@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/format";
 import { siteUrl } from "@/lib/env";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { friendlyError } from "@/lib/utils";
 
 export interface AuthState {
   error: string | null;
@@ -82,6 +83,20 @@ export async function verifyMfaChallenge(_prev: AuthState, formData: FormData): 
   if (!code) return { error: "Enter the 6-digit code from your authenticator app." };
 
   const supabase = await createClient();
+
+  // A 6-digit TOTP code is 1,000,000 combinations - without a cap here,
+  // this step alone defeats the point of having a second factor. Keyed to
+  // the aal1 session already established by signIn, same shape as the
+  // other auth actions' rate limits.
+  const {
+    data: { user: challengingUser },
+  } = await supabase.auth.getUser();
+  if (!challengingUser) return { error: "Your session expired. Sign in again." };
+  const allowed = await checkRateLimit(`mfa:${challengingUser.id}`, 5, 15 * 60);
+  if (!allowed) {
+    return { error: "Too many attempts. Wait a few minutes and try again." };
+  }
+
   const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
   const factor = factors?.totp.find((f) => f.status === "verified");
   if (listError || !factor) {
@@ -89,7 +104,7 @@ export async function verifyMfaChallenge(_prev: AuthState, formData: FormData): 
   }
 
   const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
-  if (challengeError) return { error: challengeError.message };
+  if (challengeError) return { error: friendlyError(challengeError) };
 
   const { error: verifyError } = await supabase.auth.mfa.verify({
     factorId: factor.id,
@@ -166,7 +181,7 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
           "That email or mobile number may already belong to another FoodDash account. Try signing in instead, or use a different one.",
       };
     }
-    return { error: error.message };
+    return { error: friendlyError(error) };
   }
 
   revalidatePath("/", "layout");
@@ -228,8 +243,20 @@ export async function updatePassword(_prev: AuthState, formData: FormData): Prom
   if (password.length < 8) return { error: "Use at least 8 characters for your password." };
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Your session expired. Request a new reset link." };
+
+  // Low risk either way - this only runs with a valid recovery session - but
+  // free to add alongside the other actions' limits, same shape.
+  const allowed = await checkRateLimit(`update-password:${user.id}`, 5, 15 * 60);
+  if (!allowed) {
+    return { error: "Too many attempts. Wait a few minutes and try again." };
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyError(error) };
 
   revalidatePath("/", "layout");
   return { error: null, notice: "Password updated. You're signed in." };

@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createCheckoutSession } from "@/lib/payments/paymongo";
 import { siteUrl } from "@/lib/env";
 import { isSameOrigin } from "@/lib/security";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { friendlyError } from "@/lib/utils";
 import type { PaymentMethod } from "@/lib/types/domain";
 
 /**
@@ -32,6 +34,14 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  }
+
+  // Each call hits PayMongo's real API - cheap for one retry after an
+  // expired tab, not something an endpoint with no other throttle should
+  // let a script call in a loop.
+  const allowed = await checkRateLimit(`checkout:${user.id}`, 5, 10 * 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many attempts. Please wait a few minutes and try again." }, { status: 429 });
   }
 
   // RLS already limits this to the signed-in customer's own order (or a
@@ -80,7 +90,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ checkoutUrl: session.checkoutUrl });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Could not start the payment.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    return NextResponse.json({ error: friendlyError(err) }, { status: 502 });
   }
 }

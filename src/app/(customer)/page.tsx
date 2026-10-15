@@ -9,6 +9,7 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 import { DEFAULT_LOCATION } from "@/components/customer/merchant-grid";
 import { DiscoveryFilters } from "@/components/customer/discovery-filters";
 import { getFavoritedMerchantIds } from "@/lib/favorites";
+import { friendlyError } from "@/lib/utils";
 import type { MerchantCard } from "@/lib/types/domain";
 
 /**
@@ -116,7 +117,7 @@ export default async function DiscoverPage() {
 
       {error && (
         <p role="alert" className="mx-5 mt-4 rounded-md bg-danger-tint px-4 py-3 text-sm text-danger">
-          Could not load nearby stores. {error.message}
+          Could not load nearby stores. {friendlyError(error)}
         </p>
       )}
 

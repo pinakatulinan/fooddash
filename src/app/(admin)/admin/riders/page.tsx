@@ -7,6 +7,7 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { DataTable, StatRow } from "@/components/ui/data-table";
 import { Pill } from "@/components/ui/status-pill";
 import { formatCentavos, formatRelative } from "@/lib/format";
+import { friendlyError } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Riders" };
 
@@ -49,7 +50,7 @@ export default async function AdminRidersPage() {
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6">
         {error && (
           <p role="alert" className="rounded-md bg-danger-tint px-4 py-3 text-sm text-danger">
-            Could not load riders: {error.message}
+            Could not load riders: {friendlyError(error)}
           </p>
         )}
 

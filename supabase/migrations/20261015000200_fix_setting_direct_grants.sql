@@ -1,0 +1,29 @@
+-- ============================================================================
+-- 0026  0025's revoke was incomplete for setting().
+-- ----------------------------------------------------------------------------
+-- Verified live after applying 0025: current_rider_for_order() was actually
+-- fixed (an anon call now returns NULL, as designed - its fix lives inside
+-- the function body, not in the grant). setting() was not: an anon-key call
+-- still returned a real platform_settings value.
+--
+-- Root cause, confirmed via `select proacl from pg_proc where proname =
+-- 'setting'`: anon and authenticated each hold an EXPLICIT, separate EXECUTE
+-- grant on this function - `anon=X/postgres`, `authenticated=X/postgres` -
+-- distinct from the generic PUBLIC entry 0025 revoked. Supabase grants
+-- EXECUTE directly to anon/authenticated/service_role on every new public-
+-- schema function at creation time, as a platform-level default outside any
+-- migration in this project; `revoke ... from public` never touches that.
+--
+-- Every function 0024 (close_public_grant_gap) fixed already had its own
+-- `revoke ... from anon, authenticated` from migration 0009, so 0024 only
+-- needed to add the PUBLIC layer on top. setting() and
+-- current_rider_for_order() never had ANY revoke at all, which is both why
+-- 0024's search-for-existing-revokes method missed them, and why 0025's
+-- public-only revoke wasn't enough on its own for the one fix (setting())
+-- that relies purely on the grant rather than an internal check.
+--
+-- Safe to revoke outright, same reasoning as 0025: setting() is only ever
+-- called from inside other SECURITY DEFINER functions, which execute it
+-- under their own owner's rights regardless of anon/authenticated's grants.
+-- ============================================================================
+revoke execute on function public.setting(text) from anon, authenticated;

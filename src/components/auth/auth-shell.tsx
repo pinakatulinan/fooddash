@@ -41,8 +41,8 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           edges - padding lives inside the card below, not here, or the
           rounding shows the hero peeking through a gap at each corner
           instead of reading as one continuous sheet. */}
-      <main id="main" className="mx-auto -mt-15.5 w-full max-w-md">
-        <div className="min-h-[calc(100dvh-9rem)] rounded-t-4xl bg-card px-6 pt-7 pb-16 shadow-[0_-10px_30px_rgb(122_58_31/0.08)]">
+      <main id="main" className="relative mx-auto -mt-15.5 w-full max-w-md">
+        <div className="min-h-[calc(100dvh-9rem)] rounded-t-4xl bg-card px-6 pt-10 pb-16 shadow-[0_-10px_30px_rgb(122_58_31/0.08)]">
           <h1 className="text-[26px] font-extrabold tracking-[-0.01em]">
             {onSignup ? "Create your account" : "Welcome back"}
           </h1>

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCheckoutSessionState } from "@/lib/payments/paymongo";
 import { requireReconcileSecret } from "@/lib/env";
 import { timingSafeEqualString } from "@/lib/security";
+import { friendlyError } from "@/lib/utils";
 
 /**
  * Fallback for confirm_order_payment (0019) when the webhook never fires -
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
     .not("provider_payment_id", "is", null);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: friendlyError(error) }, { status: 500 });
   }
 
   const results: { orderId: string; code: string; outcome: string }[] = [];
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
         results.push({
           orderId: order.id,
           code: order.code,
-          outcome: confirmError ? `confirm_failed: ${confirmError.message}` : "confirmed",
+          outcome: confirmError ? `confirm_failed: ${friendlyError(confirmError)}` : "confirmed",
         });
       } else {
         results.push({ orderId: order.id, code: order.code, outcome: "still_unpaid" });
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
       results.push({
         orderId: order.id,
         code: order.code,
-        outcome: `lookup_failed: ${err instanceof Error ? err.message : "unknown error"}`,
+        outcome: `lookup_failed: ${friendlyError(err)}`,
       });
     }
   }

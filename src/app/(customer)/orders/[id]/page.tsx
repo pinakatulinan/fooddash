@@ -161,7 +161,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div
         className={cn(
           "space-y-5 px-5 pb-6",
-          showMap ? "-mt-8 rounded-t-4xl bg-card pt-3 shadow-[0_-10px_30px_rgb(122_58_31/0.12)]" : "pt-4",
+          showMap ? "relative -mt-8 rounded-t-4xl bg-card pt-9 shadow-[0_-10px_30px_rgb(122_58_31/0.12)]" : "pt-4",
         )}
       >
         {showMap && <div aria-hidden className="mx-auto mb-1 h-1 w-10 rounded-pill bg-line-warm" />}
